@@ -1,0 +1,31 @@
+{
+  "name": "cucumber",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "worker": "node src/workers/test.worker.js",
+    "cucumber": "cucumber-js",
+    "test": "NODE_OPTIONS=--openssl-legacy-provider cucumber-js",
+    "mock": "node src/mocks/mock-server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@cucumber/cucumber": "^12.7.0",
+    "concurrently": "^9.2.1",
+    "multiple-cucumber-html-reporter": "^3.10.0",
+    "nodemon": "^3.1.14",
+    "puppeteer": "^24.38.0"
+  },
+  "dependencies": {
+    "axios": "^1.13.6",
+    "bullmq": "^5.70.4",
+    "express": "^5.2.1",
+    "ioredis": "^5.10.0",
+    "uuid": "^13.0.0"
+  }
+}

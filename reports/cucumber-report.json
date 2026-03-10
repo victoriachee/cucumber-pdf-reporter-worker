@@ -1,0 +1,116 @@
+[
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "payment-lifecycle;request-payment-lifecycle",
+        "keyword": "Scenario",
+        "line": 3,
+        "name": "Request payment lifecycle",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 4,
+            "name": "a user exists",
+            "match": {
+              "location": "src/features/step-definitions/payment.steps.js:8"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1890142
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 5,
+            "name": "I call wallet balance",
+            "match": {
+              "location": "src/features/step-definitions/payment.steps.js:13"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 40437802
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 6,
+            "name": "response should be success",
+            "match": {
+              "location": "src/features/step-definitions/payment.steps.js:27"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 648961,
+              "error_message": "AssertionError [ERR_ASSERTION]: Expected code 200\n    + expected - actual\n\n    -400\n    +200\n\n    at World.<anonymous> (/home/vicchee/test/cucumber/src/features/step-definitions/payment.steps.js:32:10)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 7,
+            "name": "I request payment",
+            "match": {
+              "location": "src/features/step-definitions/payment.steps.js:36"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 8,
+            "name": "payment status should be success",
+            "match": {
+              "location": "src/features/step-definitions/payment.steps.js:50"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 9,
+            "name": "I settle wager",
+            "match": {
+              "location": "src/features/step-definitions/payment.steps.js:59"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 10,
+            "name": "settlement should succeed",
+            "match": {
+              "location": "src/features/step-definitions/payment.steps.js:73"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      }
+    ],
+    "id": "payment-lifecycle",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Payment lifecycle",
+    "tags": [],
+    "uri": "src/features/payment/payment-flow.feature"
+  }
+]
