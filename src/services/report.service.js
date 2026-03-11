@@ -1,61 +1,89 @@
-const reporter = require("multiple-cucumber-html-reporter");
-const puppeteer = require("puppeteer");
 const path = require("path");
 const fs = require("fs");
+const puppeteer = require("puppeteer");
+const config = require("../config/report.config");
 
-const MAX_REPORTS = 10;
+class SerenityReportService {
+  constructor() {
+    this.baseDir = config.baseDir;
+    this.runsDir = config.runsDir;
+    this.maxReports = config.maxReports;
+  }
 
-function cleanupReports(baseDir) {
-  if (!fs.existsSync(baseDir)) return;
+  ensureDir(dir) {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  }
 
-  const folders = fs
-    .readdirSync(baseDir)
-    .map((name) => ({
-      name,
-      path: path.join(baseDir, name),
-      time: fs.statSync(path.join(baseDir, name)).mtime.getTime(),
-    }))
-    .filter((f) => fs.statSync(f.path).isDirectory())
-    .sort((a, b) => a.time - b.time);
+  cleanupReports() {
+    this.ensureDir(this.runsDir);
 
-  while (folders.length >= MAX_REPORTS) {
-    const oldest = folders.shift();
-    fs.rmSync(oldest.path, { recursive: true, force: true });
+    const folders = fs
+      .readdirSync(this.runsDir)
+      .map((name) => ({
+        name,
+        path: path.join(this.runsDir, name),
+        time: fs.statSync(path.join(this.runsDir, name)).mtime.getTime(),
+      }))
+      .filter((f) => fs.statSync(f.path).isDirectory())
+      .sort((a, b) => a.time - b.time);
+
+    while (folders.length >= this.maxReports) {
+      const oldest = folders.shift();
+      fs.rmSync(oldest.path, { recursive: true, force: true });
+    }
+  }
+
+  async generatePdf(htmlPath, reportDir) {
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
+    const page = await browser.newPage();
+    await page.goto(`file://${htmlPath}`, { waitUntil: "networkidle0" });
+
+    const pdfPath = path.join(reportDir, "report.pdf");
+    await page.pdf({ path: pdfPath, format: "A4", printBackground: true });
+
+    await browser.close();
+    return this.toPublicPath(pdfPath);
+  }
+
+  toPublicPath(absPath) {
+    return `/reports${absPath.replace(this.baseDir, "")}`.replace(/\\/g, "/");
+  }
+
+  async generateHtmlReport() {
+    this.ensureDir(this.runsDir);
+    this.cleanupReports();
+
+    // Serenity output: the latest timestamped run folder
+    const folders = fs
+      .readdirSync(this.runsDir)
+      .map((name) => path.join(this.runsDir, name))
+      .filter((p) => fs.statSync(p).isDirectory())
+      .sort(
+        (a, b) =>
+          fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime(),
+      );
+
+    if (!folders.length) throw new Error("No Serenity/JS reports found.");
+
+    const latestFolder = folders[0];
+    const htmlPath = path.join(latestFolder, "index.html");
+
+    if (!fs.existsSync(htmlPath)) {
+      console.warn("Serenity/JS index.html not found in latest folder.");
+    }
+
+    return { htmlPath, reportDir: latestFolder };
+  }
+
+  async generate(format = "html") {
+    const { htmlPath, reportDir } = await this.generateHtmlReport();
+
+    if (format === "pdf") return await this.generatePdf(htmlPath, reportDir);
+    return this.toPublicPath(htmlPath);
   }
 }
 
-exports.generate = async (format) => {
-  const baseDir = path.join(process.cwd(), "reports");
-
-  if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir);
-
-  cleanupReports(baseDir);
-
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-
-  const reportDir = path.join(baseDir, timestamp);
-
-  fs.mkdirSync(reportDir);
-
-  reporter.generate({
-    jsonDir: baseDir,
-    reportPath: reportDir,
-  });
-
-  if (format === "pdf") {
-    const browser = await puppeteer.launch();
-
-    const page = await browser.newPage();
-
-    const file = `file://${reportDir}/index.html`;
-
-    await page.goto(file, { waitUntil: "networkidle0" });
-
-    await page.pdf({
-      path: path.join(reportDir, "report.pdf"),
-      format: "A4",
-    });
-
-    await browser.close();
-  }
-};
+module.exports = new SerenityReportService();
