@@ -1,57 +1,87 @@
 const { Worker } = require("bullmq");
-const connection = require("../config/redis");
-
+const path = require("path");
+const { logger } = require("../utils/logger");
+const connection = require("../config/redis.config");
 const cucumberService = require("../services/cucumber.service");
 const reportService = require("../services/report.service");
-const logger = require("../utils/logger");
+const { runsDir } = require("../config/report.config");
+
+async function runCucumber(jobId) {
+  const timestamp = Date.now();
+  try {
+    logger.info("CUCUMBER_START", { jobId });
+    const jsonFile = await cucumberService.run(timestamp);
+    logger.info("CUCUMBER_COMPLETED", { jobId, jsonFile });
+    return { jsonFile, timestamp, error: null };
+  } catch (err) {
+    logger.error("CUCUMBER_FAILED", {
+      jobId,
+      error: err.message,
+      stack: err.stack,
+    });
+    return { jsonFile: null, timestamp, error: err };
+  }
+}
 
 const worker = new Worker(
-  "test",
-
+  "api-test-runner",
   async (job) => {
+    const jobId = job.id;
+
     try {
-      logger.info("JOB_STARTED", { jobId: job.id, format: job.data.format });
-      await job.updateProgress(5);
+      logger.info("JOB_STARTED", { jobId, format: job.data.format });
+      await job.updateProgress(10);
 
-      logger.info("CUCUMBER_START", { jobId: job.id });
-      const cucumberResult = await cucumberService.run(job.data);
-      await job.updateProgress(50);
-      logger.info("CUCUMBER_COMPLETED", {
-        jobId: job.id,
-        result: cucumberResult,
-      });
+      const {
+        jsonFile,
+        error: cucumberError,
+        timestamp,
+      } = await runCucumber(jobId);
+      await job.updateProgress(60);
 
-      logger.info("REPORT_GENERATION_START", { jobId: job.id });
+      logger.info("REPORT_START", { jobId });
+
       const reportFile = await reportService.generate(
         job.data.format,
-        cucumberResult,
+        timestamp,
       );
+
       await job.updateProgress(100);
 
-      logger.info("JOB_COMPLETED", { jobId: job.id, reportFile });
-      return { reportFile };
+      logger.info("JOB_COMPLETED", {
+        jobId,
+        reportFile,
+        failed: Boolean(cucumberError),
+      });
+
+      return { reportFile, failed: Boolean(cucumberError) };
     } catch (err) {
       logger.error("JOB_FAILED", {
-        jobId: job.id,
+        jobId,
         error: err.message,
         stack: err.stack,
       });
-      throw err; // ensures BullMQ marks job as failed
+      throw err;
     }
   },
-
   { connection },
 );
 
-// Event listeners
-worker.on("failed", (job, err) => {
-  logger.error("WORKER_JOB_FAILED", { jobId: job?.id, error: err.message });
-});
-
-worker.on("completed", (job, returnvalue) => {
+// ------------------------
+// Worker Events
+// ------------------------
+worker.on("completed", (job, result) => {
   logger.info("WORKER_JOB_SUCCESS", {
     jobId: job.id,
-    reportFile: returnvalue?.reportFile,
+    reportFile: result?.reportFile,
+    failed: result?.failed,
+  });
+});
+
+worker.on("failed", (job, err) => {
+  logger.error("WORKER_JOB_FAILED", {
+    jobId: job?.id,
+    error: err.message,
   });
 });
 

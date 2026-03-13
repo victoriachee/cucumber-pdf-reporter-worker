@@ -19,7 +19,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 1365958
+              "duration": 1016289
             }
           },
           {
@@ -28,11 +28,11 @@
             "line": 9,
             "name": "I add 2 and 3",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:16"
+              "location": "src/features/step-definitions/simple.steps.js:15"
             },
             "result": {
               "status": "passed",
-              "duration": 221183
+              "duration": 183724
             }
           },
           {
@@ -41,11 +41,11 @@
             "line": 10,
             "name": "the result should be 5",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:20"
+              "location": "src/features/step-definitions/simple.steps.js:19"
             },
             "result": {
               "status": "passed",
-              "duration": 155639
+              "duration": 464405
             }
           },
           {
@@ -58,7 +58,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 76530
+              "duration": 388333
             }
           },
           {
@@ -67,11 +67,11 @@
             "line": 13,
             "name": "I add 10 and 5",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:16"
+              "location": "src/features/step-definitions/simple.steps.js:15"
             },
             "result": {
               "status": "passed",
-              "duration": 106243
+              "duration": 395673
             }
           },
           {
@@ -80,11 +80,11 @@
             "line": 14,
             "name": "the result should be 15",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:20"
+              "location": "src/features/step-definitions/simple.steps.js:19"
             },
             "result": {
               "status": "passed",
-              "duration": 93468
+              "duration": 98468
             }
           }
         ],
@@ -104,11 +104,11 @@
             "line": 19,
             "name": "an empty list",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:27"
+              "location": "src/features/step-definitions/simple.steps.js:26"
             },
             "result": {
               "status": "passed",
-              "duration": 365005
+              "duration": 150511
             }
           },
           {
@@ -117,11 +117,11 @@
             "line": 20,
             "name": "I push 1 into the list",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:31"
+              "location": "src/features/step-definitions/simple.steps.js:30"
             },
             "result": {
               "status": "passed",
-              "duration": 151612
+              "duration": 111215
             }
           },
           {
@@ -130,11 +130,11 @@
             "line": 21,
             "name": "the list length should be 1",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:35"
+              "location": "src/features/step-definitions/simple.steps.js:34"
             },
             "result": {
               "status": "passed",
-              "duration": 651402
+              "duration": 356213
             }
           },
           {
@@ -143,11 +143,11 @@
             "line": 22,
             "name": "the list should contain 1",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:39"
+              "location": "src/features/step-definitions/simple.steps.js:38"
             },
             "result": {
               "status": "passed",
-              "duration": 3444965
+              "duration": 896983
             }
           },
           {
@@ -156,11 +156,11 @@
             "line": 24,
             "name": "an empty list",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:27"
+              "location": "src/features/step-definitions/simple.steps.js:26"
             },
             "result": {
               "status": "passed",
-              "duration": 114573
+              "duration": 405730
             }
           },
           {
@@ -169,11 +169,11 @@
             "line": 25,
             "name": "I push 42 into the list",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:31"
+              "location": "src/features/step-definitions/simple.steps.js:30"
             },
             "result": {
               "status": "passed",
-              "duration": 418293
+              "duration": 109899
             }
           },
           {
@@ -182,11 +182,11 @@
             "line": 26,
             "name": "the list length should be 1",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:35"
+              "location": "src/features/step-definitions/simple.steps.js:34"
             },
             "result": {
               "status": "passed",
-              "duration": 299334
+              "duration": 59288
             }
           },
           {
@@ -195,11 +195,11 @@
             "line": 27,
             "name": "the list should contain 42",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:39"
+              "location": "src/features/step-definitions/simple.steps.js:38"
             },
             "result": {
               "status": "passed",
-              "duration": 249329
+              "duration": 54286
             }
           }
         ],
@@ -219,11 +219,11 @@
             "line": 32,
             "name": "a user who is not logged in",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:46"
+              "location": "src/features/step-definitions/simple.steps.js:45"
             },
             "result": {
               "status": "passed",
-              "duration": 137202
+              "duration": 107024
             }
           },
           {
@@ -232,11 +232,11 @@
             "line": 33,
             "name": "the user attempts to login with password \"wrong-password\"",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:50"
+              "location": "src/features/step-definitions/simple.steps.js:49"
             },
             "result": {
               "status": "passed",
-              "duration": 465084
+              "duration": 275011
             }
           },
           {
@@ -245,12 +245,12 @@
             "line": 34,
             "name": "the user should be logged in",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:59"
+              "location": "src/features/step-definitions/simple.steps.js:54"
             },
             "result": {
               "status": "failed",
-              "duration": 1044446,
-              "error_message": "AssertionError [ERR_ASSERTION]: User login failed: invalid password\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (/home/vicchee/test/cucumber/src/features/step-definitions/simple.steps.js:61:10)"
+              "duration": 736969,
+              "error_message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (/home/vicchee/test/cucumber/src/features/step-definitions/simple.steps.js:55:10)"
             }
           }
         ],
@@ -270,11 +270,11 @@
             "line": 39,
             "name": "a user who is not logged in",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:46"
+              "location": "src/features/step-definitions/simple.steps.js:45"
             },
             "result": {
               "status": "passed",
-              "duration": 94872
+              "duration": 85899
             }
           },
           {
@@ -283,11 +283,11 @@
             "line": 40,
             "name": "the user attempts to login with password \"secret\"",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:50"
+              "location": "src/features/step-definitions/simple.steps.js:49"
             },
             "result": {
               "status": "passed",
-              "duration": 87119
+              "duration": 71769
             }
           },
           {
@@ -296,11 +296,11 @@
             "line": 41,
             "name": "the user should be logged in",
             "match": {
-              "location": "src/features/step-definitions/simple.steps.js:59"
+              "location": "src/features/step-definitions/simple.steps.js:54"
             },
             "result": {
               "status": "passed",
-              "duration": 45011
+              "duration": 43183
             }
           }
         ],
@@ -313,6 +313,6 @@
     "keyword": "Feature",
     "name": "Showcase detailed test scenarios",
     "tags": [],
-    "uri": "src/features/simple/simple.feature"
+    "uri": "src/features/simple.feature"
   }
 ]

@@ -1,89 +1,88 @@
 const path = require("path");
 const fs = require("fs");
 const puppeteer = require("puppeteer");
+const reporter = require("cucumber-html-reporter");
 const config = require("../config/report.config");
 
-class SerenityReportService {
+class ReportService {
   constructor() {
     this.baseDir = config.baseDir;
     this.runsDir = config.runsDir;
-    this.maxReports = config.maxReports;
+    this.jsonDir = config.jsonDir;
   }
 
-  ensureDir(dir) {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  }
+  async generate(format = "html", timestamp) {
+    const jsonFile = path.join(this.jsonDir, String(timestamp), "report.json");
+    const reportDir = path.join(this.runsDir, String(timestamp));
 
-  cleanupReports() {
-    this.ensureDir(this.runsDir);
+    fs.mkdirSync(reportDir, { recursive: true });
 
-    const folders = fs
-      .readdirSync(this.runsDir)
-      .map((name) => ({
-        name,
-        path: path.join(this.runsDir, name),
-        time: fs.statSync(path.join(this.runsDir, name)).mtime.getTime(),
-      }))
-      .filter((f) => fs.statSync(f.path).isDirectory())
-      .sort((a, b) => a.time - b.time);
+    const htmlPath = path.join(reportDir, "index.html");
 
-    while (folders.length >= this.maxReports) {
-      const oldest = folders.shift();
-      fs.rmSync(oldest.path, { recursive: true, force: true });
+    reporter.generate({
+      theme: "bootstrap",
+      jsonFile,
+      output: htmlPath,
+      reportSuiteAsScenarios: true,
+      launchReport: false,
+      metadata: {
+        "Test Environment": "API",
+        Platform: process.platform,
+        "Node Version": process.version,
+      },
+    });
+
+    if (format === "pdf") {
+      const pdfPath = await this.generatePdf(htmlPath, reportDir);
+      return this.toPublicPath(pdfPath);
     }
+
+    return this.toPublicPath(htmlPath);
   }
 
+  toPublicPath(filePath) {
+    const reportsRoot = path.join(process.cwd(), "reports");
+    const relative = path.relative(reportsRoot, filePath);
+
+    return `/reports/${relative.replace(/\\/g, "/")}`;
+  }
   async generatePdf(htmlPath, reportDir) {
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--no-sandbox"],
     });
 
     const page = await browser.newPage();
+
     await page.goto(`file://${htmlPath}`, { waitUntil: "networkidle0" });
 
+    /* expand all collapsed sections */
+    await page.evaluate(() => {
+      /* expand bootstrap collapse sections */
+      document.querySelectorAll(".collapse").forEach((el) => {
+        el.classList.add("show");
+      });
+
+      /* trigger click on collapsed feature/scenario headers */
+      document.querySelectorAll('[data-toggle="collapse"]').forEach((btn) => {
+        btn.click();
+      });
+    });
+
+    /* allow UI to finish expanding */
+    await new Promise((r) => setTimeout(r, 500));
+
     const pdfPath = path.join(reportDir, "report.pdf");
-    await page.pdf({ path: pdfPath, format: "A4", printBackground: true });
+
+    await page.pdf({
+      path: pdfPath,
+      format: "A4",
+      printBackground: true,
+    });
 
     await browser.close();
-    return this.toPublicPath(pdfPath);
-  }
 
-  toPublicPath(absPath) {
-    return `/reports${absPath.replace(this.baseDir, "")}`.replace(/\\/g, "/");
-  }
-
-  async generateHtmlReport() {
-    this.ensureDir(this.runsDir);
-    this.cleanupReports();
-
-    // Serenity output: the latest timestamped run folder
-    const folders = fs
-      .readdirSync(this.runsDir)
-      .map((name) => path.join(this.runsDir, name))
-      .filter((p) => fs.statSync(p).isDirectory())
-      .sort(
-        (a, b) =>
-          fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime(),
-      );
-
-    if (!folders.length) throw new Error("No Serenity/JS reports found.");
-
-    const latestFolder = folders[0];
-    const htmlPath = path.join(latestFolder, "index.html");
-
-    if (!fs.existsSync(htmlPath)) {
-      console.warn("Serenity/JS index.html not found in latest folder.");
-    }
-
-    return { htmlPath, reportDir: latestFolder };
-  }
-
-  async generate(format = "html") {
-    const { htmlPath, reportDir } = await this.generateHtmlReport();
-
-    if (format === "pdf") return await this.generatePdf(htmlPath, reportDir);
-    return this.toPublicPath(htmlPath);
+    return pdfPath;
   }
 }
 
-module.exports = new SerenityReportService();
+module.exports = new ReportService();

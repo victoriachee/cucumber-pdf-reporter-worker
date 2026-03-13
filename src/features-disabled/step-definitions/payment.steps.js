@@ -1,7 +1,7 @@
 const { Given, When, Then } = require("@cucumber/cucumber");
 const assert = require("assert");
 const api = require("../../services/api.service");
-const logger = require("../../utils/logger");
+const { logger } = require("../../utils/logger");
 
 let ctx = {};
 
@@ -19,7 +19,9 @@ When("I call wallet balance", async function () {
     logger.debug("Wallet balance response", { response: ctx.balance });
   } catch (err) {
     ctx.error = err.response?.data || err.message;
-    logger.error("Wallet balance call failed", { error: ctx.error });
+    logger.error("Wallet balance call failed", {
+      error: ctx.error,
+    });
     throw new Error(`Wallet balance call failed: ${JSON.stringify(ctx.error)}`);
   }
 });

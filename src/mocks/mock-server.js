@@ -3,14 +3,14 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const math = require("mathjs");
 
-const mockMiddleware = require("../middlewares/mockMiddleware");
+const mockMiddleware = require("./mock-middleware");
 const {
   respondSuccess,
   respondError,
   seamlessCaseResponseGenerator,
-} = require("../utils/mockResponse");
+} = require("./mock-response");
 const { generateUUID } = require("../utils/uuid");
-const logger = require("../utils/logger");
+const { logger } = require("../utils/logger");
 
 const app = express();
 app.use(cors());
@@ -21,7 +21,7 @@ const CURRENCIES = { CNY: true, USD: true, EUR: true };
 
 // --- Helper to log requests ---
 app.use((req, res, next) => {
-  logger.info("DEBUG", `Incoming request ${req.method} ${req.path}`, {
+  logger.info(`Incoming request ${req.method} ${req.path}`, {
     body: req.body,
     params: req.params,
   });
@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 
 // --- Wallet balance ---
 app.get(
-  "/payment/wallet/:case?",
+  "/payment/wallet",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiGetUserWalletBalanceReqPayload,
@@ -79,7 +79,7 @@ app.get(
         balances,
       });
     } catch (err) {
-      logger.error("ERROR", "Wallet balance endpoint failed", {
+      logger.error("Wallet balance endpoint failed", {
         error: err.message,
       });
       return res.status(500).json({ code: 500, message: err.message });
@@ -89,7 +89,7 @@ app.get(
 
 // --- Request Payment ---
 app.post(
-  "/payment/request/:case?",
+  "/payment/request",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiRequestPaymentReqPayload,
@@ -104,7 +104,7 @@ app.post(
 
 // --- Notify Payment Failed ---
 app.post(
-  "/payment/notifyFailed/:case?",
+  "/payment/notifyFailed",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiNotifyPaymentFailedReqPayload,
@@ -116,7 +116,7 @@ app.post(
 
 // --- Settle Wager ---
 app.post(
-  "/order/settle/:case?",
+  "/order/settle",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiBulkSettleWagersReqPayload,
@@ -128,7 +128,7 @@ app.post(
 
 // --- Cancel Wager ---
 app.post(
-  "/wager/cancel/:case?",
+  "/wager/cancel",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiBulkCancelWagersReqPayload,
@@ -140,7 +140,7 @@ app.post(
 
 // --- Resettle Wager ---
 app.post(
-  "/order/resettle/:case?",
+  "/order/resettle",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiBulkResettleWagersReqPayload,
@@ -152,7 +152,7 @@ app.post(
 
 // --- Deposit (Transfer In) ---
 app.post(
-  "/payment/deposit/:case?",
+  "/payment/deposit",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiTransferInReqPayload,
@@ -165,7 +165,7 @@ app.post(
 
 // --- Withdraw (Transfer Out) ---
 app.post(
-  "/payment/withdraw/:case?",
+  "/payment/withdraw",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiTransferOutReqPayload,
@@ -179,7 +179,7 @@ app.post(
 
 // --- Undo Wager ---
 app.post(
-  "/wager/undo/:case?",
+  "/wager/undo",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiBulkUndoWagersReqPayload,
@@ -191,7 +191,7 @@ app.post(
 
 // --- Notify Wager Update ---
 app.post(
-  "/wager/notify/:case?",
+  "/wager/notify",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiNotifyWagersReqPayload,
@@ -200,7 +200,7 @@ app.post(
 
 // --- Cancel Transfer ---
 app.post(
-  "/transfer/cancel/:case?",
+  "/transfer/cancel",
   mockMiddleware.validateHeaders(),
   mockMiddleware.decryptPayload,
   mockMiddleware.validateOpenapiCancelTransferOutReqPayload,
@@ -210,10 +210,14 @@ app.post(
     }),
 );
 
+app.get("/health", (req, res) => {
+  res.status(200).send("ok");
+});
+
 // --- Start server ---
 const PORT = 8082;
 app.listen(PORT, () => {
-  logger.info("INFO", `Mock server running on port ${PORT}`);
+  logger.info("Mock server running", { port: PORT });
 });
 
 module.exports = app;

@@ -4,46 +4,38 @@ const fs = require("fs");
 const { logger } = require("../utils/logger");
 const { jsonDir } = require("../config/report.config");
 
-fs.mkdirSync(jsonDir, { recursive: true });
+exports.run = async (timestamp) => {
+  const runDir = path.join(jsonDir, String(timestamp));
+  fs.mkdirSync(runDir, { recursive: true });
 
-/**
- * Runs Cucumber and returns the path to the JSON report
- */
-exports.run = () =>
-  new Promise((resolve, reject) => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const runDir = path.join(jsonDir, timestamp);
-    fs.mkdirSync(runDir, { recursive: true });
+  const jsonFile = path.join(runDir, "report.json");
 
-    const jsonFile = path.join(runDir, "serenity-json.json");
+  const args = [
+    "cucumber-js",
+    "src/features/**/*.feature",
+    "--require",
+    "src/features/step-definitions/**/*.js",
+    "--format",
+    "progress",
+    "--format",
+    `json:${jsonFile}`,
+  ];
 
-    const args = [
-      "cucumber-js",
-      "--require-module",
-      "@serenity-js/core",
-      "--require",
-      "src/features/step-definitions/**/*.js",
-      "--format",
-      `@serenity-js/cucumber:json:${jsonFile}`, // no extra quotes
-      "src/features/**/*.feature",
-    ];
-
-    const cucumber = spawn("npx", args); // do not use { shell: true }
+  return new Promise((resolve, reject) => {
+    const proc = spawn("npx", args, { stdio: "pipe" });
 
     logger.info("CUCUMBER_CMD", { command: "npx", args });
 
-    cucumber.stdout.on("data", (data) => logger.info(data.toString()));
-    cucumber.stderr.on("data", (data) => logger.error(data.toString()));
+    proc.stdout.on("data", (d) => logger.info(d.toString()));
+    proc.stderr.on("data", (d) => logger.error(d.toString()));
 
-    cucumber.on("close", (code) => {
+    proc.on("close", (code) => {
       if (code !== 0) {
-        logger.warn("CUCUMBER_NON_ZERO_EXIT", { code });
+        logger.warn("CUCUMBER_EXIT_NON_ZERO", { code });
       }
-      resolve(jsonFile); // always resolve so report generation continues
+      resolve(jsonFile);
     });
 
-    cucumber.on("error", (err) => {
-      logger.error("CUCUMBER_SPAWN_ERROR", err);
-      reject(err);
-    });
+    proc.on("error", reject);
   });
+};
