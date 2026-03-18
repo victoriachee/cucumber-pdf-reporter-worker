@@ -161,10 +161,9 @@ flowchart TD
 - **Merchant mode (merchant_settings) determines API endpoints**
 
 ---
-
 ## Test Coverage
 
-### General
+### General (always executed)
 
 | Code | Feature |
 |------|--------|
@@ -173,7 +172,9 @@ flowchart TD
 
 ---
 
-### Seamless (Wallet APIs)
+### Game Wallet Mode: Seamless (Wallet Operation APIs)
+
+> Applies when a game is **Seamless mode**  
 
 | Code | Feature |
 |------|--------|
@@ -186,7 +187,9 @@ flowchart TD
 
 ---
 
-### Transfer Wallet (Transfer APIs)
+### Game Wallet Mode: Transfer Wallet (Transfer APIs)
+
+> Applies when a game is **Transfer Wallet mode**  
 
 | Code | Feature |
 |------|--------|
@@ -207,7 +210,10 @@ flowchart TD
 
 ---
 
-# 4. API
+
+
+# 4. API Usage
+
 
 | Method | Route |
 |--------|------|
@@ -215,6 +221,43 @@ flowchart TD
 | GET | `/tests/status/:id` |
 | DELETE | `/tests/cancel/:id` |
 | GET | `/tests/reports` |
+
+
+### Start Report Run
+
+```http
+POST /tests/run
+```
+
+```json
+{
+  "format": "html"
+}
+```
+
+---
+
+### Check Status
+
+```http
+GET /tests/status/:id
+```
+
+---
+
+### Cancel Run
+
+```http
+DELETE /tests/cancel/:id
+```
+
+---
+
+### Get Reports
+
+```http
+GET /tests/reports
+```
 
 ---
 
@@ -255,41 +298,3 @@ npm run full
 ```
 
 ---
-
-# 6. Usage
-
-### Start Run
-
-```http
-POST /tests/run
-```
-
-```json
-{
-  "format": "html"
-}
-```
-
----
-
-### Check Status
-
-```http
-GET /tests/status/:id
-```
-
----
-
-### Cancel Run
-
-```http
-DELETE /tests/cancel/:id
-```
-
----
-
-### Get Reports
-
-```http
-GET /tests/reports
-```
