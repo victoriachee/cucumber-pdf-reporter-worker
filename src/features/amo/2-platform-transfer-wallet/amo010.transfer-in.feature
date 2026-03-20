@@ -11,7 +11,7 @@ Feature: AMO010 Request Transfer In
     When APISYS requests transfer in with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | 75.125               |
@@ -28,7 +28,7 @@ Feature: AMO010 Request Transfer In
     When APISYS requests transfer in with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | 50                   |
@@ -45,7 +45,7 @@ Feature: AMO010 Request Transfer In
     When APISYS requests transfer in with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | 50                   |
@@ -62,7 +62,7 @@ Feature: AMO010 Request Transfer In
     When APISYS requests transfer in with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | 0                    |
@@ -78,7 +78,7 @@ Feature: AMO010 Request Transfer In
     When APISYS requests transfer in with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | 1.1234567            |
@@ -89,7 +89,7 @@ Feature: AMO010 Request Transfer In
     When APISYS requests transfer in with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | -1                   |
@@ -99,7 +99,7 @@ Feature: AMO010 Request Transfer In
   Scenario: Validation fails when transfer_no is missing
     When APISYS requests transfer in with:
       | field             | value                |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | 10                   |
@@ -110,7 +110,7 @@ Feature: AMO010 Request Transfer In
     When APISYS requests transfer in with:
       | field       | value           |
       | transfer_no | <transfer_no>   |
-      | game_type   | <game_type>     |
+      | game_type   | <game_type_transfer_wallet>     |
       | currency    | <currency>      |
       | amount      | 10              |
       | session_id  | <session_id>    |
@@ -120,7 +120,7 @@ Feature: AMO010 Request Transfer In
     When APISYS requests transfer in with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | amount            | 10                   |
       | session_id        | <session_id>         |
@@ -140,7 +140,7 @@ Feature: AMO010 Request Transfer In
     When APISYS requests transfer in with:
       | field             | value               |
       | transfer_no       | <transfer_no>       |
-      | game_type         | <game_type>         |
+      | game_type         | <game_type_transfer_wallet>         |
       | platform_username | <platform_username> |
       | currency          | <currency>          |
       | amount            | 10                  |

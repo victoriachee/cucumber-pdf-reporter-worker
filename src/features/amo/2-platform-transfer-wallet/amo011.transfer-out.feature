@@ -12,7 +12,7 @@ Feature: AMO011 Request Transfer Out
     When APISYS requests transfer out with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | -20.5                |
@@ -31,7 +31,7 @@ Feature: AMO011 Request Transfer Out
     When APISYS requests transfer out with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | -15                  |
@@ -49,7 +49,7 @@ Feature: AMO011 Request Transfer Out
     When APISYS requests transfer out with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | -15                  |
@@ -68,7 +68,7 @@ Feature: AMO011 Request Transfer Out
     When APISYS requests transfer out with:
       | field             | value                          |
       | transfer_no       | <transfer_no>                  |
-      | game_type         | <game_type>                    |
+      | game_type         | <game_type_transfer_wallet>                    |
       | platform_username | <platform_username>            |
       | currency          | <currency>                     |
       | amount            | <amount_exceeding_balance>     |
@@ -86,7 +86,7 @@ Scenario: Not providing amount transfers out all integer wallet balance
   When APISYS requests transfer out with:
     | field             | value                |
     | transfer_no       | <transfer_no>        |
-    | game_type         | <game_type>          |
+    | game_type         | <game_type_transfer_wallet>          |
     | platform_username | <platform_username>  |
     | currency          | <currency>           |
     | session_id        | <session_id>         |
@@ -102,7 +102,7 @@ Scenario: Not providing amount transfers out all integer wallet balance
     When APISYS requests transfer out with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | -1.1234567           |
@@ -113,7 +113,7 @@ Scenario: Not providing amount transfers out all integer wallet balance
     When APISYS requests transfer out with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | 1                    |
@@ -123,7 +123,7 @@ Scenario: Not providing amount transfers out all integer wallet balance
   Scenario: Validation fails when transfer_no is missing
     When APISYS requests transfer out with:
       | field             | value                |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | -10                  |
@@ -144,7 +144,7 @@ Scenario: Not providing amount transfers out all integer wallet balance
     When APISYS requests transfer out with:
       | field       | value           |
       | transfer_no | <transfer_no>   |
-      | game_type   | <game_type>     |
+      | game_type   | <game_type_transfer_wallet>     |
       | currency    | <currency>      |
       | amount      | -10             |
       | session_id  | <session_id>    |
@@ -154,7 +154,7 @@ Scenario: Not providing amount transfers out all integer wallet balance
     When APISYS requests transfer out with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | amount            | -10                  |
       | session_id        | <session_id>         |
@@ -164,7 +164,7 @@ Scenario: Not providing amount transfers out all integer wallet balance
     When APISYS requests transfer out with:
       | field             | value                |
       | transfer_no       | <transfer_no>        |
-      | game_type         | <game_type>          |
+      | game_type         | <game_type_transfer_wallet>          |
       | platform_username | <platform_username>  |
       | currency          | <currency>           |
       | amount            | -10                  |

@@ -24,7 +24,7 @@ Feature: Integration Flow - Transfer wallet lifecycle
     When APISYS requests transfer out with:
       | field             | value                 |
       | transfer_no       | <transfer_no_2>       |
-      | game_type         | <game_type>           |
+      | game_type         | <game_type_transfer_wallet>           |
       | platform_username | <platform_username>   |
       | currency          | <currency>            |
       | amount            | -35                   |

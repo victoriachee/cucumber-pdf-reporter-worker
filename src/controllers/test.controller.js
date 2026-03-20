@@ -34,7 +34,7 @@ exports.runTests = async (req, res) => {
     defaults: { currency },
   };
 
-  const games = generateMockGames(2);
+  const games = generateMockGames("both");
   const featurePaths = resolveFeaturePaths(games);
 
   const job = await queue.add(

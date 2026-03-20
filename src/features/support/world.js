@@ -14,44 +14,68 @@ const {
 class World {
   constructor({ attach }) {
     const ctx = decodeCtx();
+    const context = ctx.world ?? {};
+    const now = Math.floor(Date.now() / 1000);
 
     this.attach = attach;
     this.lastRequest = null;
     this.lastResponse = null;
 
-    this.config = {
-      merchant_settings: ctx.world?.merchant_settings ?? {},
-    };
+    this.config = { merchant_settings: context.merchant_settings ?? {} };
 
     this.vars = {
-      platform_username: ctx.world?.user?.platform_username,
-      game_type: ctx.world?.game_type ?? "PT_SLOT",
-      game_key: ctx.world?.game_key ?? "GGL",
-      currency: ctx.world?.defaults?.currency ?? DEFAULT_CURRENCY,
+      platform_username: context.user?.platform_username,
+      currency: context.defaults?.currency ?? DEFAULT_CURRENCY,
+
+      game_type_seamless: context.game_type_seamless ?? "GGL",
+      game_type_transfer_wallet: context.game_type_transfer_wallet ?? "PT_SLOT",
+
+      game_key_seamless: context.game_key_seamless ?? "GGL",
+      game_key_transfer_wallet: context.game_key_transfer_wallet ?? "PT_SLOT",
 
       transaction_no: crypto.randomUUID(),
       transfer_no: crypto.randomUUID(),
       session_id: crypto.randomUUID(),
 
-      settlement_time: Math.floor(Date.now() / 1000),
+      notification_type: context.notification_type ?? "typeA",
 
-      wager_no:
-        ctx.world?.wager_no ??
-        `wager-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      wager_no: `wager-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      origin_wager_no: `origin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      ticket_no: `ticket-${crypto.randomUUID()}`,
 
-      wager_type: ctx.world?.wager_type ?? 1, // 1=Normal wager, 2=Player tip, 3=System reward
+      wager_time: context.wager_time ?? now,
+      settlement_time: context.settlement_time ?? now,
 
-      metadata_type: ctx.world?.metadata_type ?? "ggl-settle-wager",
+      wager_type: {
+        normal_wager: 1,
+        player_tip: 2,
+        system_reward: 3,
+      },
+
+      wager_status: {
+        creating: -1,
+        creation_failed: 7,
+        creation_failed_cancelled: 13,
+        pending: 0,
+        cancelled: 9,
+        partial_settled: 12,
+        unsettled: 1,
+        settled: 2,
+        resettled: 6,
+        undone: 11,
+      },
+
+      metadata_type: context.metadata_type ?? "ggl-settle-wager",
 
       metadata:
-        ctx.world?.metadata ??
+        context.metadata ??
         JSON.stringify({
           order_no: crypto.randomUUID(),
           origin_order_no: crypto.randomUUID(),
           origin_sub_order_no: crypto.randomUUID(),
         }),
 
-      is_system_reward: ctx.world?.is_system_reward ?? false,
+      is_system_reward: context.is_system_reward ?? false,
 
       ...createUUIDVars("transfer_no_"),
       ...createUUIDVars("partial_transaction_no_"),
@@ -59,11 +83,16 @@ class World {
   }
 
   resolve(value) {
+    // replace placeholders e.g. '<type.b>' -> this.vars.['type']?.['b']
     if (typeof value === "string") {
-      const replaced = value.replace(
-        /<([^>]+)>/g,
-        (_, key) => this.vars[key] ?? `<${key}>`,
-      );
+      const replaced = value.replace(/<([^>]+)>/g, (_, path) => {
+        const resolved =
+          path in this.vars
+            ? this.vars[path]
+            : path.split(".").reduce((obj, part) => obj?.[part], this.vars);
+
+        return resolved ?? `<${path}>`;
+      });
 
       const parsed = parseJsonLike(replaced);
 

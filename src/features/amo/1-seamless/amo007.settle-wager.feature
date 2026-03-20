@@ -14,7 +14,7 @@ Feature: AMO007 Seamless Settle Wager
       | game_key              | <game_key>           |
       | wager_no              | <wager_no>           |
       | platform_username     | <platform_username>  |
-      | type                  | <wager_type>         |
+      | type                  | <wager_type.normal_wager>         |
       | currency              | <currency>           |
       | amount                | 25.75                |
       | effective_amount      | 25.75                |
@@ -37,7 +37,7 @@ Feature: AMO007 Seamless Settle Wager
       | game_key                   | <game_key>           |
       | wager_no                   | <wager_no>           |
       | platform_username          | <platform_username>  |
-      | type                       | <wager_type>         |
+      | type                       | <wager_type.normal_wager>         |
       | currency                   | <currency>           |
       | amount                     | 10                   |
       | effective_amount           | 10                   |
@@ -61,7 +61,7 @@ Feature: AMO007 Seamless Settle Wager
       | game_key                   | <game_key>           |
       | wager_no                   | <wager_no>           |
       | platform_username          | <platform_username>  |
-      | type                       | <wager_type>         |
+      | type                       | <wager_type.normal_wager>         |
       | currency                   | <currency>           |
       | amount                     | -5                   |
       | effective_amount           | -5                   |
@@ -85,7 +85,7 @@ Feature: AMO007 Seamless Settle Wager
       | game_key              | <game_key>           |
       | wager_no              | <wager_no>           |
       | platform_username     | <platform_username>  |
-      | type                  | <wager_type>         |
+      | type                  | <wager_type.normal_wager>         |
       | currency              | <currency>           |
       | amount                | 99                   |
       | effective_amount      | 99                   |
@@ -107,7 +107,7 @@ Feature: AMO007 Seamless Settle Wager
       | game_key              | <game_key>           |
       | wager_no              | <wager_no>           |
       | platform_username     | <platform_username>  |
-      | type                  | <wager_type>         |
+      | type                  | <wager_type.normal_wager>         |
       | currency              | <currency>           |
       | amount                | 1.1234567            |
       | effective_amount      | 1.1234567            |

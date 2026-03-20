@@ -13,7 +13,9 @@ async function getWalletBalance(world) {
   const data = world.responseData();
   const balance = data?.balances?.[currency];
 
-  if (!balance) throw this.error("Failed to get wallet balance");
+  if (balance !== 0 && !balance) {
+    throw world.error("Failed to get wallet balance");
+  }
 
   return new Decimal(balance);
 }

@@ -10,7 +10,7 @@ Feature: AMO014 Request Cancel Transfer
     Given a successful transfer in exists for:
       | field             | value                 |
       | transfer_no       | <transfer_no>         |
-      | game_type         | <game_type>           |
+      | game_type         | <game_type_transfer_wallet>           |
       | platform_username | <platform_username>   |
       | currency          | <currency>            |
       | amount            | 20                    |
@@ -37,7 +37,7 @@ Feature: AMO014 Request Cancel Transfer
     And a successful transfer out exists for:
       | field             | value                 |
       | transfer_no       | <transfer_no>         |
-      | game_type         | <game_type>           |
+      | game_type         | <game_type_transfer_wallet>           |
       | platform_username | <platform_username>   |
       | currency          | <currency>            |
       | amount            | -20                   |

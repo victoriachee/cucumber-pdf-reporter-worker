@@ -19,7 +19,7 @@ Feature: AMO009 Seamless Resettle Wager
       | currency          | <currency>              |
       | amount            | 12.5                    |
       | effective_amount  | <effective_amount>      |
-      | type              | <wager_type>            |
+      | type              | <wager_type.normal_wager>            |
       | metadata          | <metadata>              |
       | metadata_type     | <metadata_type>         |
       | wager_time        | <wager_time>            |
@@ -44,7 +44,7 @@ Feature: AMO009 Seamless Resettle Wager
       | currency          | <currency>              |
       | amount            | -4.25                   |
       | effective_amount  | <effective_amount>      |
-      | type              | <wager_type>            |
+      | type              | <wager_type.normal_wager>            |
       | metadata          | <metadata>              |
       | metadata_type     | <metadata_type>         |
       | wager_time        | <wager_time>            |
