@@ -1,4 +1,3 @@
-// src/workers/api-test-runner.worker.js
 const { Worker } = require("bullmq");
 const { logger } = require("../utils/logger");
 const connection = require("../config/redis.config");

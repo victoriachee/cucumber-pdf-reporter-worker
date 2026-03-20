@@ -75,7 +75,7 @@ Given(
     const balance =
       this.vars.beforeBalances?.[currency] ?? (await getWalletBalance(this));
 
-    const amount = new Decimal(balance).minus(extra); // ensure positive deduction amount
+    const amount = new Decimal(balance).minus(extra);
 
     if (amount.lte(0)) {
       throw this.error(`Invalid amount for deduction`, {
@@ -95,49 +95,54 @@ Given(
   },
 );
 
+async function assertWalletBalanceDecrease(
+  world,
+  currencyPlaceholder,
+  amountPlaceholder,
+) {
+  const currency = world.resolve(currencyPlaceholder);
+  const amount = new Decimal(world.resolve(amountPlaceholder));
+  const before = world.vars.beforeBalances?.[currency];
+  const after = await getWalletBalance(world);
+  const expected = before.minus(amount);
+
+  assert(
+    after.equals(expected),
+    [
+      `Wallet balance assertion failed`,
+      `  Check             : decrease`,
+      `  Currency          : ${currency}`,
+      `  Decrease amount   : ${amount.toString()}`,
+      `  Balance before    : ${before.toString()}`,
+      `  Expected balance  : ${expected.toString()}`,
+      `  Actual balance    : ${after.toString()}`,
+    ].join("\n"),
+  );
+
+  await world.attachInfo("Wallet balance check", {
+    Currency: currency,
+    Before: before.toString(),
+    After: after.toString(),
+    "Expected decrease": amount.toString(),
+    Expected: expected.toString(),
+  });
+}
+
 Then(
   "the wallet balance in {string} should decrease by {string}",
   async function (currencyPlaceholder, amountPlaceholder) {
-    const currency = this.resolve(currencyPlaceholder);
-    const amount = this.resolve(amountPlaceholder);
-    const before = this.vars.beforeBalances?.[currency];
-    const after = await getWalletBalance(this);
-    const expected = before.minus(amount);
-
-    assert(
-      after.equals(expected),
-      `Expected wallet ${currency} to decrease by ${amount}, before=${before.toString()}, after=${after.toString()}, expected=${expected.toString()}`,
+    await assertWalletBalanceDecrease(
+      this,
+      currencyPlaceholder,
+      amountPlaceholder,
     );
-
-    await this.attachInfo("Wallet balance check", {
-      Currency: `${currency}`,
-      Before: `${before.toString()}`,
-      After: `${after.toString()}`,
-      "Expected decrease": `${new Decimal(amount).toString()}`,
-    });
   },
 );
 
 Then(
   "the wallet balance in {string} should decrease by {float}",
-  async function (currencyPlaceholder, amountPlaceholder) {
-    const currency = this.resolve(currencyPlaceholder);
-    const amount = this.resolve(amountPlaceholder);
-    const before = this.vars.beforeBalances?.[currency];
-    const after = await getWalletBalance(this);
-    const expected = before.minus(amount);
-
-    assert(
-      after.equals(expected),
-      `Expected wallet ${currency} to decrease by ${amount}, before=${before.toString()}, after=${after.toString()}, expected=${expected.toString()}`,
-    );
-
-    await this.attachInfo("Wallet balance check", {
-      Currency: `${currency}`,
-      Before: `${before.toString()}`,
-      After: `${after.toString()}`,
-      "Expected decrease": `${new Decimal(amount).toString()}`,
-    });
+  async function (currencyPlaceholder, amount) {
+    await assertWalletBalanceDecrease(this, currencyPlaceholder, amount);
   },
 );
 
@@ -147,18 +152,28 @@ Then(
     const currency = this.resolve(currencyPlaceholder);
     const before = this.vars.beforeBalances?.[currency];
     const after = await getWalletBalance(this);
-    const expected = before.plus(amount);
+    const amountDecimal = new Decimal(amount);
+    const expected = before.plus(amountDecimal);
 
     assert(
       after.equals(expected),
-      `Expected wallet ${currency} to increase by ${amount}, before=${before.toString()}, after=${after.toString()}, expected=${expected.toString()}`,
+      [
+        `Wallet balance assertion failed`,
+        `  Check             : increase`,
+        `  Currency          : ${currency}`,
+        `  Increase amount   : ${amountDecimal.toString()}`,
+        `  Balance before    : ${before.toString()}`,
+        `  Expected balance  : ${expected.toString()}`,
+        `  Actual balance    : ${after.toString()}`,
+      ].join("\n"),
     );
 
     await this.attachInfo("Wallet balance check", {
-      Currency: `${currency}`,
-      Before: `${before.toString()}`,
-      After: `${after.toString()}`,
-      "Expected increase": `${new Decimal(amount).toString()}`,
+      Currency: currency,
+      Before: before.toString(),
+      After: after.toString(),
+      "Expected increase": amountDecimal.toString(),
+      Expected: expected.toString(),
     });
   },
 );
@@ -172,13 +187,21 @@ Then(
 
     assert(
       after.equals(before),
-      `Expected wallet ${currency} to remain unchanged, before=${before.toString()}, after=${after.toString()}`,
+      [
+        `Wallet balance assertion failed`,
+        `  Check             : unchanged`,
+        `  Currency          : ${currency}`,
+        `  Balance before    : ${before.toString()}`,
+        `  Expected balance  : ${before.toString()}`,
+        `  Actual balance    : ${after.toString()}`,
+      ].join("\n"),
     );
 
-    await this.attachInfo("Wallet balance check (unchanged):", {
-      Currency: `${currency}`,
-      Before: `${before.toString()}`,
-      After: `${after.toString()}`,
+    await this.attachInfo("Wallet balance check (unchanged)", {
+      Currency: currency,
+      Before: before.toString(),
+      After: after.toString(),
+      Expected: before.toString(),
     });
   },
 );
@@ -197,16 +220,18 @@ Then(
       });
     }
 
-    // Use Decimal to handle integer truncation
     const expected = new Decimal(before).floor().negated();
 
     if (!actual.equals(expected)) {
-      throw this.error("Integer transfer mismatch", {
-        currency,
-        before: before.toString(),
-        expected: expected.toString(),
-        actual: actual.toString(),
-      });
+      throw this.error(
+        [
+          `Integer transfer assertion failed`,
+          `  Currency          : ${currency}`,
+          `  Balance before    : ${before.toString()}`,
+          `  Expected amount   : ${expected.toString()}`,
+          `  Actual amount     : ${actual.toString()}`,
+        ].join("\n"),
+      );
     }
   },
 );
@@ -225,16 +250,18 @@ Then(
       });
     }
 
-    // Decimal subtraction to get the fractional remainder
     const expected = new Decimal(before).minus(new Decimal(before).floor());
 
     if (!after.equals(expected)) {
-      throw this.error("Remaining decimal mismatch", {
-        currency,
-        before: before.toString(),
-        after: after.toString(),
-        expected: expected.toString(),
-      });
+      throw this.error(
+        [
+          `Remaining decimal assertion failed`,
+          `  Currency          : ${currency}`,
+          `  Balance before    : ${before.toString()}`,
+          `  Expected balance  : ${expected.toString()}`,
+          `  Actual balance    : ${after.toString()}`,
+        ].join("\n"),
+      );
     }
 
     await this.attachInfo("Remaining decimal check", {

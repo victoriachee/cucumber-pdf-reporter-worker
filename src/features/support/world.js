@@ -25,23 +25,62 @@ class World {
 
     this.vars = {
       platform_username: ctx.world?.user?.platform_username,
-      game_type: ctx.world?.user?.game_type ?? "PT_SLOT",
+      game_type: ctx.world?.game_type ?? "PT_SLOT",
+      game_key: ctx.world?.game_key ?? "GGL",
       currency: ctx.world?.defaults?.currency ?? DEFAULT_CURRENCY,
+
       transaction_no: crypto.randomUUID(),
       transfer_no: crypto.randomUUID(),
       session_id: crypto.randomUUID(),
+
+      settlement_time: Math.floor(Date.now() / 1000),
+
+      wager_no:
+        ctx.world?.wager_no ??
+        `wager-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+
+      wager_type: ctx.world?.wager_type ?? 1, // 1=Normal wager, 2=Player tip, 3=System reward
+
+      metadata_type: ctx.world?.metadata_type ?? "ggl-settle-wager",
+
+      metadata:
+        ctx.world?.metadata ??
+        JSON.stringify({
+          order_no: crypto.randomUUID(),
+          origin_order_no: crypto.randomUUID(),
+          origin_sub_order_no: crypto.randomUUID(),
+        }),
+
+      is_system_reward: ctx.world?.is_system_reward ?? false,
+
       ...createUUIDVars("transfer_no_"),
       ...createUUIDVars("partial_transaction_no_"),
     };
   }
 
-  isApiSuccess(response = this.lastResponse) {
-    const status = response?.status ?? response?.code;
-    return typeof status === "number" && status < 400;
-  }
+  resolve(value) {
+    if (typeof value === "string") {
+      const replaced = value.replace(
+        /<([^>]+)>/g,
+        (_, key) => this.vars[key] ?? `<${key}>`,
+      );
 
-  responseData(response = this.lastResponse) {
-    return response?.body?.data ?? response;
+      const parsed = parseJsonLike(replaced);
+
+      return parsed;
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.resolve(item));
+    }
+
+    if (value && typeof value === "object") {
+      return Object.fromEntries(
+        Object.entries(value).map(([key, item]) => [key, this.resolve(item)]),
+      );
+    }
+
+    return value;
   }
 
   tablePayload(table) {
@@ -51,6 +90,39 @@ class World {
         .slice(1) // skip header row: ["field", "value"]
         .map(([key, value]) => [key, this.resolve(value)]),
     );
+  }
+
+  async request(method, url, payload = {}) {
+    if (!url) {
+      throw this.error("API not set in merchant settings");
+    }
+
+    const requestBody = this.resolve(payload);
+    this.lastRequest = requestBody;
+
+    try {
+      const response = await apiService.call(method, url, requestBody);
+      this.lastResponse = normalizeResponse(response);
+    } catch (err) {
+      this.lastResponse = normalizeError(error);
+    }
+
+    await this.attachInfo("Request", {
+      API: `${method} ${url}`,
+      Payload: this.lastRequest,
+      Response: this.lastResponse,
+    });
+
+    return this.lastResponse;
+  }
+
+  isApiSuccess(response = this.lastResponse) {
+    const status = response?.status ?? response?.code;
+    return typeof status === "number" && status < 400;
+  }
+
+  responseData(response = this.lastResponse) {
+    return response?.body?.data ?? response;
   }
 
   error(message, context = {}) {
@@ -79,53 +151,6 @@ class World {
     }
 
     await this.attach(lines.join("\n"), "text/plain");
-  }
-
-  resolve(value) {
-    if (typeof value === "string") {
-      const resolved = value.replace(
-        /<([^>]+)>/g,
-        (_, key) => this.vars[key] ?? `<${key}>`,
-      );
-
-      return parseJsonLike(resolved);
-    }
-
-    if (Array.isArray(value)) {
-      return value.map((item) => this.resolve(item));
-    }
-
-    if (value && typeof value === "object") {
-      return Object.fromEntries(
-        Object.entries(value).map(([key, item]) => [key, this.resolve(item)]),
-      );
-    }
-
-    return value;
-  }
-
-  async request(method, url, payload = {}) {
-    if (!url) {
-      throw this.error("API not set in merchant settings");
-    }
-
-    const requestBody = this.resolve(payload);
-    this.lastRequest = requestBody;
-
-    try {
-      const response = await apiService.call(method, url, requestBody);
-      this.lastResponse = normalizeResponse(response);
-    } catch (err) {
-      this.lastResponse = normalizeError(error);
-    }
-
-    await this.attachInfo("Request", {
-      API: `${method} ${url}`,
-      Payload: this.lastRequest,
-      Response: this.lastResponse,
-    });
-
-    return this.lastResponse;
   }
 }
 

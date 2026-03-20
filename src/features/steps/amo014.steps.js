@@ -1,5 +1,4 @@
 const { Given, When, Then } = require("@cucumber/cucumber");
-const Decimal = require("decimal.js");
 
 Given("a successful transfer in exists for:", async function (table) {
   const payload = this.tablePayload(table);
@@ -41,6 +40,6 @@ When("APISYS requests cancel transfer with:", async function (table) {
 
 Then("the AMO014 response should be successful", function () {
   if (!this.isApiSuccess()) {
-    throw this.error("Expected successful response but got failure");
+    throw this.error("Expected AMO014 response to be successful");
   }
 });
