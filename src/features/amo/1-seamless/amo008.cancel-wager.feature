@@ -80,12 +80,8 @@ Feature: AMO008 Seamless Cancel Wager
       | field             | value               |
       | transaction_no    | <transaction_no_2>  |
       | game_key          | <game_key_seamless> |
-      | wager_no          | <wager_no>          |
+      | parent_wager_no   | <parent_wager_no>   |
       | platform_username | <platform_username> |
-      | currency          | <currency>          |
-      | amount            | <deduction_amount>  |
-      | metadata          | <metadata>          |
-      | metadata_type     | <metadata_type>     |
     Then the AMO004 response should be successful
     And the wallet balance in "<currency>" should increase by "<deduction_amount>"
 
