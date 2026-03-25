@@ -72,7 +72,6 @@ sequenceDiagram
     participant Queue
     participant Worker
     participant Cucumber
-    participant APISYS
     participant Merchant
     participant Report
 
@@ -81,10 +80,8 @@ sequenceDiagram
     Queue->>Worker: process job
 
     Worker->>Cucumber: execute scenarios
-    Cucumber->>APISYS: trigger flow
-    APISYS->>Merchant: API request
-    Merchant-->>APISYS: response
-    APISYS-->>Cucumber: result
+    Cucumber->>Merchant: API request
+    Merchant-->>Cucumber: response
 
     Worker->>Report: generate HTML/PDF
     API-->>Client: status / report endpoints
