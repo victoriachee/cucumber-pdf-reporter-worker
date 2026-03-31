@@ -25,8 +25,7 @@ exports.runTests = async (req, res) => {
     cancel_transfer_api: `${domain}/api/v1/transfer-wallet/cancel-transfer`,
     notify_wager_api: `${mockApiDomain}/wager/notify`,
   };
-
-  const world = {
+  const worldParams = {
     user: {
       platform_username,
     },
@@ -42,7 +41,7 @@ exports.runTests = async (req, res) => {
     {
       runId: uuid(),
       format,
-      world,
+      worldParams,
       featurePaths,
     },
     {

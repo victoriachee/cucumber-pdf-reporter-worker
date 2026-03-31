@@ -8,15 +8,17 @@ exports.run = async (timestamp, ctx = {}) => {
   const runDir = path.join(jsonDir, String(timestamp));
   fs.mkdirSync(runDir, { recursive: true });
 
-  const featurePaths = ctx.featurePaths?.length
+  const features = ctx.featurePaths?.length
     ? ctx.featurePaths
     : ["src/features/**/*.feature"];
+
+  const worldParams = JSON.stringify(ctx.worldParams ?? {});
 
   const jsonFile = path.join(runDir, "report.json");
 
   const args = [
     "cucumber-js",
-    ...featurePaths,
+    ...features,
     "--require",
     "src/features/steps/**/*.js",
     "--require",
@@ -25,18 +27,14 @@ exports.run = async (timestamp, ctx = {}) => {
     "progress",
     "--format",
     `json:${jsonFile}`,
+    "--world-parameters",
+    worldParams,
   ];
-
-  // Encode world context for Cucumber
-  const encodedCtx = Buffer.from(JSON.stringify(ctx)).toString("base64");
 
   return new Promise((resolve, reject) => {
     const proc = spawn("npx", args, {
       stdio: "pipe",
-      env: {
-        ...process.env,
-        CUCUMBER_WORLD_CONTEXT_B64: encodedCtx,
-      },
+      env: process.env,
     });
 
     logger.info("CUCUMBER_CMD", { command: "npx", args });

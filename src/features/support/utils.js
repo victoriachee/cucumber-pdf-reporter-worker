@@ -1,23 +1,7 @@
 const crypto = require("crypto");
 
-const CTX_ENV = "CUCUMBER_WORLD_CONTEXT_B64";
-const DEFAULT_CURRENCY = "CNY";
 const GENERATED_UUID_COUNT = 10;
 const INDENT = "  ";
-
-function decodeCtx() {
-  const raw = process.env[CTX_ENV];
-
-  if (!raw) {
-    throw new Error(`${CTX_ENV} environment variable missing`);
-  }
-
-  try {
-    return JSON.parse(Buffer.from(raw, "base64").toString("utf8"));
-  } catch {
-    throw new Error(`Invalid ${CTX_ENV} payload`);
-  }
-}
 
 function normalizeResponse(response) {
   return {
@@ -124,9 +108,21 @@ function parseLiteral(value) {
   return value;
 }
 
+const formatTimestamp = (date = new Date()) => {
+  const pad = (n) => n.toString().padStart(2, "0");
+  return (
+    date.getFullYear().toString() +
+    pad(date.getMonth() + 1) +
+    pad(date.getDate()) +
+    pad(date.getHours()) +
+    pad(date.getMinutes()) +
+    pad(date.getSeconds())
+  );
+};
+
+const shortUUID = () => crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+
 module.exports = {
-  DEFAULT_CURRENCY,
-  decodeCtx,
   normalizeResponse,
   normalizeError,
   createUUIDVars,
@@ -137,4 +133,6 @@ module.exports = {
   parseJsonLike,
   isJsonLike,
   parseLiteral,
+  formatTimestamp,
+  shortUUID,
 };

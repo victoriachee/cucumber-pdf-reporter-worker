@@ -2,8 +2,6 @@ const { setWorldConstructor } = require("@cucumber/cucumber");
 const apiService = require("../../services/api.service");
 const WorldError = require("./world.error");
 const {
-  DEFAULT_CURRENCY,
-  decodeCtx,
   normalizeResponse,
   normalizeError,
   indent,
@@ -12,56 +10,43 @@ const {
   isJsonLike,
   getValueByPath,
   parseLiteral,
+  formatTimestamp,
+  shortUUID,
 } = require("./utils");
 const { CURRENCIES } = require("./constants");
 
 class World {
-  constructor({ attach }) {
-    const ctx = decodeCtx();
-    const context = ctx.world ?? {};
+  constructor(options) {
+    const params = options.parameters ?? {};
+    this.attach = options.attach;
+    this.log = options.log;
+    this.requestPayload = undefined;
+    this.lastRequest = undefined;
+    this.lastResponse = undefined;
+
     const now = Math.floor(Date.now() / 1000);
 
-    this.attach = attach;
-    this.lastRequest = null;
-    this.lastResponse = null;
-
-    this.config = { merchant_settings: context.merchant_settings ?? {} };
-
-    // helpers
-    const formatTimestamp = (date = new Date()) => {
-      const pad = (n) => n.toString().padStart(2, "0");
-      return (
-        date.getFullYear().toString() +
-        pad(date.getMonth() + 1) +
-        pad(date.getDate()) +
-        pad(date.getHours()) +
-        pad(date.getMinutes()) +
-        pad(date.getSeconds())
-      );
-    };
-
-    const shortUUID = () => crypto.randomUUID().replace(/-/g, "").slice(0, 12);
-
-    const gameServiceCode = context.game_service_code ?? "0001";
-
+    const gameServiceCode = params.game_service_code ?? "0001";
     const parentWagerNo = `${gameServiceCode}-${formatTimestamp()}-${shortUUID()}`;
 
+    this.config = { merchant_settings: params.merchant_settings ?? {} };
+
     this.vars = {
-      platform_username: context.user?.platform_username,
-      currency: context.defaults?.currency ?? DEFAULT_CURRENCY,
-      currencies: context.currencies ?? Object.values(CURRENCIES),
+      platform_username: params.user?.platform_username,
+      currency: params.defaults?.currency ?? "CNY",
+      currencies: params.currencies ?? Object.values(CURRENCIES),
 
-      game_type_seamless: context.game_type_seamless ?? "GGL",
-      game_type_transfer_wallet: context.game_type_transfer_wallet ?? "PT_SLOT",
+      game_type_seamless: params.game_type_seamless ?? "GGL",
+      game_type_transfer_wallet: params.game_type_transfer_wallet ?? "PT_SLOT",
 
-      game_key_seamless: context.game_key_seamless ?? "GGL",
-      game_key_transfer_wallet: context.game_key_transfer_wallet ?? "PT_SLOT",
+      game_key_seamless: params.game_key_seamless ?? "GGL",
+      game_key_transfer_wallet: params.game_key_transfer_wallet ?? "PT_SLOT",
 
       transaction_no: crypto.randomUUID(),
       transfer_no: crypto.randomUUID(),
       session_id: crypto.randomUUID(),
 
-      notification_type: context.notification_type ?? "typeA",
+      notification_type: params.notification_type ?? "typeA",
 
       parent_wager_no: parentWagerNo,
       origin_wager_no: parentWagerNo,
@@ -72,8 +57,8 @@ class World {
 
       ticket_no: `ticket-${crypto.randomUUID()}`,
 
-      wager_time: context.wager_time ?? now,
-      settlement_time: context.settlement_time ?? now,
+      wager_time: params.wager_time ?? now,
+      settlement_time: params.settlement_time ?? now,
 
       wager_type: {
         normal_wager: 1,
@@ -94,15 +79,15 @@ class World {
         undone: 11,
       },
 
-      metadata_type: context.metadata_type ?? "ggl-settle-wager",
+      metadata_type: params.metadata_type ?? "ggl-settle-wager",
 
-      metadata: context.metadata ?? {
+      metadata: params.metadata ?? {
         order_no: crypto.randomUUID(),
         origin_order_no: crypto.randomUUID(),
         origin_sub_order_no: crypto.randomUUID(),
       },
 
-      is_system_reward: context.is_system_reward ?? false,
+      is_system_reward: params.is_system_reward ?? false,
 
       ...createUUIDVars("ticket_no_"),
       ...createUUIDVars("transaction_no_"),
@@ -198,9 +183,9 @@ class World {
     return response?.body?.data ?? response;
   }
 
-  error(message, context = {}) {
+  error(message, params = {}) {
     return new WorldError(message, {
-      ...context,
+      ...params,
       request: this.lastRequest,
       response: this.lastResponse,
     });
