@@ -1,3 +1,4 @@
+@general
 Feature: AMO013 Notify Wager Update
   As APISYS
   I want to notify the merchant of wager updates
@@ -6,7 +7,8 @@ Feature: AMO013 Notify Wager Update
   Background:
     Given a merchant member exists
 
-  Scenario: Notify merchant with a single wager update
+  @success
+  Scenario: Notify wager update for single wager
     When I call AMO013 API with:
       """
       {
@@ -35,7 +37,8 @@ Feature: AMO013 Notify Wager Update
       """
     Then the response should be successful
 
-  Scenario: Notify merchant with multiple wager updates across wallet modes
+  @success
+  Scenario: Notify wager updates across wallet modes
     When I call AMO013 API with:
       """
       {
@@ -82,7 +85,8 @@ Feature: AMO013 Notify Wager Update
       """
     Then the response should be successful
 
-  Scenario: Notify merchant with nullable origin wager and settlement time
+  @success
+  Scenario: Notify wager update with nullable fields
     When I call AMO013 API with:
       """
       {

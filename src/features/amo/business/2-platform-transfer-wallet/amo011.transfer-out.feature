@@ -1,3 +1,4 @@
+@transfer
 Feature: AMO011 Request Transfer Out
   As APISYS
   I want to call the merchant transfer out API

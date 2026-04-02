@@ -1,4 +1,5 @@
-Feature: AMO009 Seamless Resettle Wager
+@seamless
+Feature: AMO009 Resettle Wager
   As APISYS
   I want to call the merchant resettle wager API
   So that I can apply corrected settlement amounts

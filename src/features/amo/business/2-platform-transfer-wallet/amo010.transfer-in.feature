@@ -1,3 +1,4 @@
+@transfer
 Feature: AMO010 Request Transfer In
   As APISYS
   I want to call the merchant transfer in API

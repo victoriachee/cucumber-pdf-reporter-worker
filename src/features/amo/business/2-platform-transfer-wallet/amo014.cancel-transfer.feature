@@ -1,4 +1,5 @@
-Feature: AMO014 Request Cancel Transfer
+@transfer
+Feature: AMO014 Cancel Transfer
   As APISYS
   I want to call the merchant cancel transfer API
   So that I can reverse a previous transfer ledger

@@ -1,3 +1,4 @@
+@general
 Feature: AMO001 Get Member Wallet Balance
   As APISYS
   I want to call the merchant wallet balance API
@@ -6,7 +7,8 @@ Feature: AMO001 Get Member Wallet Balance
   Background:
     Given a merchant member exists
 
-  Scenario: Get balances for requested currencies
+  @success
+  Scenario: Retrieve balances for requested currencies
     When I call AMO001 API with:
       | field             | value               |
       | platform_username | <platform_username> |
@@ -17,7 +19,8 @@ Feature: AMO001 Get Member Wallet Balance
       | platform_username | <platform_username> |
       | currencies        | [<currency>]        |
 
-  Scenario: Get balances for all supported currencies
+  @success
+  Scenario: Retrieve balances for all supported currencies
     When I call AMO001 API with:
       | field             | value               |
       | platform_username | <platform_username> |
@@ -27,17 +30,42 @@ Feature: AMO001 Get Member Wallet Balance
       | field             | value               |
       | platform_username | <platform_username> |
       | currencies        | <currencies>        |
-      
-  Scenario: Validation fails when platform username is invalid
+  
+  @validation
+  Scenario: Fail validation - invalid platform_username
     When I call AMO001 API with:
       | field             | value                   |
       | platform_username | invalid_username        |
-      | currencies        | ["CNY","THB"]           |
+      | currencies        | [<currency>]           |
     Then the response should fail validation
 
-  Scenario: Validation fails when currencies array is empty
+  @validation
+  Scenario: Fail validation - empty currencies array
     When I call AMO001 API with:
       | field             | value                   |
       | platform_username | <platform_username>     |
       | currencies        | []                      |
     Then the response should fail validation
+
+  @validation @optional
+  Scenario: Fail validation - invalid currency in array
+    When I call AMO001 API with:
+      | field             | value                   |
+      | platform_username | <platform_username>     |
+      | currencies        | [<currency>,"INVALID"] |
+    Then the response should fail validation
+
+  @validation @optional
+  Scenario Outline: Fail validation - missing required field "<required_field>"
+    When I prepare a request payload with:
+      | field             | value               |
+      | platform_username | <platform_username> |
+      | currencies        | [<currency>]        |
+    And I remove "<required_field>" from the request payload
+    And I call AMO001 API
+    Then the response should fail validation
+
+    Examples:
+      | required_field    |
+      | platform_username |
+      | currencies        |

@@ -1,4 +1,5 @@
-Feature: Integration: Transfer Wallet Lifecycle
+@transfer @integration
+Feature: Transfer Wallet Lifecycle
   As APISYS
   I want to call transfer APIs in sequence
   So that I can verify wallet balance changes and transfer reversal end to end

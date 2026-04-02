@@ -1,4 +1,5 @@
-Feature: AMO012 Seamless Undo Wager
+@seamless
+Feature: AMO012 Undo Wager
   As APISYS
   I want to call the merchant undo wager API
   So that the merchant can reverse the wallet effect of a previous wager

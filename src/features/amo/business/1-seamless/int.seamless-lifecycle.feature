@@ -1,4 +1,5 @@
-Feature: Integration: Seamless Wager Lifecycle
+@seamless @integration 
+Feature: Seamless Wager Lifecycle
   As APISYS
   I want seamless wager lifecycle APIs to apply the correct wallet adjustments
   So that request payment, settlement, resettlement, and undo produce the expected final balance
@@ -20,9 +21,9 @@ Feature: Integration: Seamless Wager Lifecycle
       | orders            | [{ "wager_no": <wager_no_1>, "ticket_no": <ticket_no>, "type": <wager_type.normal_wager>, "amount": 100, "payment_amount": 100, "effective_amount": 100, "metadata": <metadata>, "metadata_type": <metadata_type>, "wager_time": <wager_time>, "is_system_reward": false }] |
     Then the response should be successful
     And the response should contain:
-      | field        | value               |
-      | reference_id | any non-empty value |
-      | status       | 1                   |
+      | field             | value               |
+      | reference_id      | any non-empty value |
+      | status            | 1                   |
     And the wallet balance in "<currency>" should decrease by 100
 
     Given I record the current wallet balance in "<currency>"
@@ -43,8 +44,8 @@ Feature: Integration: Seamless Wager Lifecycle
       | is_partial_settlement | false                     |
     Then the response should be successful
     And the response should contain:
-      | field        | value               |
-      | reference_id | any non-empty value |
+      | field                 | value                     |
+      | reference_id          | any non-empty value       |
     And the wallet balance in "<currency>" should increase by 150
 
   Scenario: Resettle a settled winning wager to lose
