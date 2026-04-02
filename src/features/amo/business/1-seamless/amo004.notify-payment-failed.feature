@@ -1,16 +1,17 @@
-Feature: AMO004 Seamless Notify Payment Failed
+@seamless
+Feature: AMO004 Notify Payment Failed
   As APISYS
   I want to notify the merchant when a payment fails
 
   Background:
     Given a merchant member exists
 
-  Scenario: Payment failed notification refunds deducted amount
+  @success
+  Scenario: Refund deducted amount on payment failure
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
     And I prepare a deduction amount of 45
 
-    # request payment
     When I call AMO003 "Request Payment" API with:
       | field             | value               |
       | transaction_no    | <transaction_no>    |
@@ -23,7 +24,6 @@ Feature: AMO004 Seamless Notify Payment Failed
     Then the response should be successful
     And the wallet balance in "<currency>" should decrease by 45
 
-    # notify payment failed
     Given I record the current wallet balance in "<currency>"
     When I call AMO004 "Notify Payment Failed" API with:
       | field             | value               |
@@ -36,3 +36,22 @@ Feature: AMO004 Seamless Notify Payment Failed
       | field             | value               |
       | reference_id      | any non-empty value |
     And the wallet balance in "<currency>" should increase by 45
+
+
+  @business
+  Scenario: Return success without balance change when no existing payment request
+    Given the member has positive wallet balance in "<currency>"
+    And I record the current wallet balance in "<currency>"
+
+    When I call AMO004 "Notify Payment Failed" API with:
+      | field             | value               |
+      | transaction_no    | <transaction_no>    |
+      | game_key          | <game_key_seamless> |
+      | parent_wager_no   | <parent_wager_no>   |
+      | platform_username | <platform_username> |
+
+    Then the response should be successful
+    And the response should contain:
+      | field        | value               |
+      | reference_id | any non-empty value |
+    And the wallet balance in "<currency>" should remain unchanged
