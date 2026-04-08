@@ -36,9 +36,19 @@ class World {
       currency: params.defaults?.currency ?? "CNY",
       currencies: params.currencies ?? Object.values(CURRENCIES),
 
+      game_type:
+        params.game_type ??
+        params.game_type_seamless ??
+        params.game_type_transfer_wallet ??
+        "GGL",
       game_type_seamless: params.game_type_seamless ?? "GGL",
       game_type_transfer_wallet: params.game_type_transfer_wallet ?? "PT_SLOT",
 
+      game_key:
+        params.game_key ??
+        params.game_key_seamless ??
+        params.game_key_transfer_wallet ??
+        "GGL",
       game_key_seamless: params.game_key_seamless ?? "GGL",
       game_key_transfer_wallet: params.game_key_transfer_wallet ?? "PT_SLOT",
 

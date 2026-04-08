@@ -1,77 +1,123 @@
 @seamless
 Feature: AMO013 Notify Wager Update
   As APISYS
-  I want to notify the merchant of wager updates
-  So that I can provide corrected wager details after earlier wallet actions
-  Support wager update notifications for seamless games
-  Use this notification when wager details such as effective_amount become available later
-  Wallet balance is not changed by this notification
+  I notify corrected wager details after wallet actions
+  Used when values (e.g. effective_amount) are finalized later
+  Does not change wallet balance
 
   Background:
-    Given a merchant member exists
+    Given the member has positive wallet balance in "<currency>"
+
+    # initial request payment
+    When I call AMO003 "Request payment" API with:
+    """
+    {
+      "transaction_no": <transaction_no_1>,
+      "game_key": <game_key_seamless>,
+      "parent_wager_no": <parent_wager_no>,
+      "platform_username": <platform_username>,
+      "currency": <currency>,
+      "amount": -100,
+      "orders": [
+        {
+          "wager_no": <wager_no_1>,
+          "ticket_no": <ticket_no_1>,
+          "type": <wager_type.normal_wager>,
+          "amount": 100,
+          "payment_amount": 100,
+          "effective_amount": 100,
+          "metadata": <metadata>,
+          "metadata_type": <metadata_type>,
+          "wager_time": <wager_time>,
+          "is_system_reward": false
+        }
+      ]
+    }
+    """
+    Then the response should be successful
 
   @success
-  Scenario: Notify updated wager details after request payment
-    Process wager update notification after request payment
-    Validate merchant receives corrected wager details after the initial payment request
+  Scenario: Update after request payment
+    Send corrected wager details after request payment
+    e.g. Used when effective_amount is finalized later
 
-    When I call AMO013 API with:
+    When I call AMO013 "Notify Wager Update" API with:
+    """
+    {
+      "notification_type": "WAGER_UPDATE",
+      "notifications": [
+        {
+          "game_type": <game_type_seamless>,
+          "game_key": <game_key_seamless>,
+          "wager_no": <wager_no_1>,
+          "origin_wager_no": null,
+          "ticket_no": <ticket_no_1>,
+          "platform_username": <platform_username>,
+          "type": <wager_type.normal_wager>,
+          "status": <wager_status.pending>,
+          "currency": <currency>,
+          "amount": 100,
+          "payment_amount": 100,
+          "effective_amount": 80,
+          "profit_and_loss": 0,
+          "wager_time": <wager_time>,
+          "settlement_time": null,
+          "is_system_reward": false
+        }
+      ]
+    }
+    """
+    Then the response should be successful
+
+  @success
+  Scenario: Update after settlement
+    Send corrected wager details after settlement
+    Reflect final wager values
+
+    When I call AMO007 "Settle Wager" API with:
       """
       {
-        "notification_type": "WAGER_UPDATE",
-        "notifications": [
-          {
-            "game_type": <game_type_seamless>,
-            "game_key": <game_key_seamless>,
-            "wager_no": <wager_no_1>,
-            "origin_wager_no": null,
-            "ticket_no": <ticket_no_1>,
-            "platform_username": <platform_username>,
-            "type": <wager_type.normal_wager>,
-            "status": <wager_status.pending>,
-            "currency": <currency>,
-            "amount": 10.1,
-            "payment_amount": 10.1,
-            "effective_amount": 10,
-            "profit_and_loss": 0,
-            "wager_time": <wager_time>,
-            "settlement_time": null,
-            "is_system_reward": false
-          }
-        ]
+        "transaction_no": <transaction_no_2>,
+        "game_key": <game_key_seamless>,
+        "wager_no": <wager_no_1>,
+        "platform_username": <platform_username>,
+        "type": <wager_type.normal_wager>,
+        "currency": <currency>,
+        "amount": 150,
+        "effective_amount": 100,
+        "settlement_time": <settlement_time>,
+        "metadata": <metadata>,
+        "metadata_type": <metadata_type>,
+        "is_system_reward": <is_system_reward>,
+        "is_partial_settlement": false
       }
       """
     Then the response should be successful
 
-  @success
-  Scenario: Notify updated wager details after settlement
-    Process wager update notification after settlement
-    Validate merchant receives corrected wager details after the initial settlement request
-
-    When I call AMO013 API with:
-      """
-      {
-        "notification_type": "WAGER_UPDATE",
-        "notifications": [
-          {
-            "game_type": <game_type_seamless>,
-            "game_key": <game_key_seamless>,
-            "wager_no": <wager_no_1>,
-            "origin_wager_no": null,
-            "ticket_no": <ticket_no_1>,
-            "platform_username": <platform_username>,
-            "type": <wager_type.normal_wager>,
-            "status": <wager_status.settled>,
-            "currency": <currency>,
-            "amount": 10.1,
-            "payment_amount": 10.1,
-            "effective_amount": 10,
-            "profit_and_loss": 5.1,
-            "wager_time": <wager_time>,
-            "settlement_time": <settlement_time>,
-            "is_system_reward": false
-          }
-        ]
-      }
-      """
+    When I call AMO013 "Notify Wager Update" API with:
+    """
+    {
+      "notification_type": "WAGER_UPDATE",
+      "notifications": [
+        {
+          "game_type": <game_type_seamless>,
+          "game_key": <game_key_seamless>,
+          "wager_no": <wager_no_1>,
+          "origin_wager_no": null,
+          "ticket_no": <ticket_no_1>,
+          "platform_username": <platform_username>,
+          "type": <wager_type.normal_wager>,
+          "status": <wager_status.settled>,
+          "currency": <currency>,
+          "amount": 100,
+          "payment_amount": 100,
+          "effective_amount": 80,
+          "profit_and_loss": 5.1,
+          "wager_time": <wager_time>,
+          "settlement_time": <settlement_time>,
+          "is_system_reward": false
+        }
+      ]
+    }
+    """
     Then the response should be successful
