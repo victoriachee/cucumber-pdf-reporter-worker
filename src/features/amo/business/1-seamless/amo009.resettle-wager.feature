@@ -1,10 +1,9 @@
 @seamless
 Feature: AMO009 Resettle Wager
   As APISYS
-  I want to call the merchant resettle wager API
-  So that I can apply corrective resettlement amounts to the member wallet
-  Only allowed for terminal state wagers (Settled (2), Cancelled (9) or Undone (11))
-  Creates a new Resettled (6) wager referencing origin_wager_no
+  I send resettlement for a terminal-state wager (Settled, Cancelled, Undone) to Merchant
+  So that Merchant adjusts the wallet
+  And APISYS creates a Resettled wager referencing origin_wager_no
 
   Background:
     # create a pending wager and settle it before each resettlement scenario
@@ -38,27 +37,29 @@ Feature: AMO009 Resettle Wager
     Then the response should be successful
 
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:
-      | field                  | value                     |
-      | transaction_no         | <transaction_no_2>        |
-      | game_key               | <game_key_seamless>       |
-      | wager_no               | <origin_wager_no>         |
-      | platform_username      | <platform_username>       |
-      | type                   | <wager_type.normal_wager> |
-      | currency               | <currency>                |
-      | amount                 | 150                       |
-      | effective_amount       | 100                       |
-      | settlement_time        | <settlement_time>         |
-      | metadata               | <metadata>                |
-      | metadata_type          | <metadata_type>           |
-      | is_system_reward       | <is_system_reward>        |
-      | is_partial_settlement  | false                     |
+      """
+      {
+        "transaction_no": <transaction_no_2>,
+        "game_key": <game_key_seamless>,
+        "wager_no": <wager_no_1>,
+        "platform_username": <platform_username>,
+        "type": <wager_type.normal_wager>,
+        "currency": <currency>,
+        "amount": 150,
+        "effective_amount": 100,
+        "settlement_time": <settlement_time>,
+        "metadata": <metadata>,
+        "metadata_type": <metadata_type>,
+        "is_system_reward": <is_system_reward>,
+        "is_partial_settlement": false
+      }
+      """
     Then the response should be successful
 
   @success @business
-  Scenario: Resettle a wager from win to lose to win
-    Process resettlement for a settled wager
-    Validate multiple resettlements can reference the same origin_wager_no
-    Wallet balance changes by each resettlement amount when processed
+  Scenario: Multiple resettlements on same origin wager
+    Apply multiple resettlements on the same origin_wager_no
+    Merchant updates wallet for each request
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO009 "Resettle Wager - Lose" API with:
@@ -109,10 +110,8 @@ Feature: AMO009 Resettle Wager
     And the wallet balance in "<currency>" should increase by 150
 
   @business
-  Scenario: Allow zero amount without balance change
-    Process resettlement with zero amount
-    Validate zero amount is accepted as a valid correction
-    Wallet balance remains unchanged
+  Scenario: Zero amount
+    Accept request with no wallet change
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO009 "Resettle Wager - Zero amount" API with:
@@ -140,9 +139,8 @@ Feature: AMO009 Resettle Wager
 
   @edge
   Scenario: Support up to 6 decimal places
-    Process resettlement amount with up to 6 decimal places
+    Wallet updates without rounding errors
     Validate decimal precision up to 6 places is supported
-    Wallet balance updates without rounding errors
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO009 "Resettle Wager - 6 decimal places" API with:
@@ -169,10 +167,10 @@ Feature: AMO009 Resettle Wager
     And the wallet balance in "<currency>" should decrease by 149.999999
 
   @idempotency
-  Scenario: Handle idempotent resettlement
-    Process duplicate resettlement request with the same transaction_no
-    Validate same reference_id is returned
-    Wallet balance is updated only once
+  Scenario: Idempotent request
+    Process once per transaction_no
+    Validate same reference_id is returned in both attempts
+    Wallet is updated only once
 
     Given I record the current wallet balance in "<currency>"
     When I prepare a request payload with:

@@ -1,10 +1,9 @@
 @seamless
 Feature: AMO008 Cancel Wager
   As APISYS
-  I want to call the merchant cancel wager API
-  So that I can cancel a wager and restore the wallet effect when necessary
-  Update a Pending (0) or Partial Settled (12) wager to Cancelled (9) state
-  Wallet balance is refunded according to the wager state at cancellation
+  I send a cancel request for a wager (Pending or Partial Settled) to Merchant
+  So that Merchant restores wallet when necessary
+  And APISYS updates wager status to Cancelled
 
   Background:
     Given the member has positive wallet balance in "<currency>"
@@ -42,12 +41,10 @@ Feature: AMO008 Cancel Wager
       | status            | 1                   |
     And the wallet balance in "<currency>" should decrease by "<deduction_amount>"
     
-  @success @idempotency
-  Scenario: Cancel a wager and handle idempotent retry
-    Process wager cancellation for a pending wager
-    Validate duplicate cancel request returns the same result for the same transaction_no
-    Wallet balance is refunded only once
-
+  @success
+  Scenario: Cancel wager
+    Refund wallet once
+    
     # cancel wager to refund payment
     Given I record the current wallet balance in "<currency>"
     When I prepare a request payload with:
@@ -58,19 +55,34 @@ Feature: AMO008 Cancel Wager
       | platform_username | <platform_username>   |
       | metadata          | <metadata>            |
       | metadata_type     | <metadata_type>       |
-    And I call AMO008 "Cancel Wager - First request" API
+    And I call AMO008 API
     Then the response should be successful
     And the response should contain:
       | field             | value                 |
       | reference_id      | any non-empty value   |
-    And I store the response field "reference_id" as "amo008_reference_id"
     And the wallet balance in "<currency>" should increase by "<deduction_amount>"
 
-    # cancel wager again to verify idempotency
+  @idempotency
+  Scenario: Idempotent request
+    Process once per transaction_no
+    Validate same reference_id is returned in both attempts
+    Wallet is updated only once
+
     Given I record the current wallet balance in "<currency>"
-    When I call AMO008 "Cancel Wager - Duplicate transaction_no" API
-    Then the response should be successful
-    And the response should contain:
+    When I prepare a request payload with:
       | field             | value                 |
-      | reference_id      | <amo008_reference_id> |
+      | transaction_no    | <transaction_no_2>    |
+      | game_key          | <game_key_seamless>   |
+      | wager_no          | <wager_no_1>          |
+      | platform_username | <platform_username>   |
+      | metadata          | <metadata>            |
+      | metadata_type     | <metadata_type>       |
+    And I call AMO007 "Cancel Wager - First request" API
+    Then the response should be successful
+    And I store the full response as "first_response"
+    And the wallet balance in "<currency>" should increase by "<deduction_amount>"
+
+    Given I record the current wallet balance in "<currency>"
+    When I call AMO007 "Cancel Wager - Duplicate transaction_no" API
+    Then the response should be the same as stored response "first_response"
     And the wallet balance in "<currency>" should remain unchanged

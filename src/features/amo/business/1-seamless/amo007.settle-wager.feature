@@ -1,11 +1,9 @@
 @seamless
 Feature: AMO007 Settle Wager
   As APISYS
-  I want to call the merchant settle wager API
-  So that I can apply wager settlement results to the member wallet
-  Update a Pending (0) wager to Partial Settled (12) / Settled (2) state
-  Support partial settlement and final settlement for the same wager_no
-  Wallet balance changes only by settlement amounts not already processed
+  I send settlement for a wager (Pending or Partial Settled) to Merchant
+  So that Merchant updates wallet
+  And APISYS updates wager status to Settled or Partial Settled
 
   Background:
     # create a pending wager before each settlement scenario
@@ -39,10 +37,9 @@ Feature: AMO007 Settle Wager
     Then the response should be successful
 
   @success
-  Scenario: Support settlement for a wager without partial settlement history
-    Process settlement for a pending wager
-    Validate settlement can be completed without partial settlement history
-    Wallet balance increases by the settlement amount
+  Scenario: Full settlement
+    Apply full settlement amount to wallet
+    Validate settlement can be completed without partial_settlement_history
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - Full settlement" API with:
@@ -70,10 +67,9 @@ Feature: AMO007 Settle Wager
     And the wallet balance in "<currency>" should increase by 150
 
   @success
-  Scenario: Support partial settlement for a wager
-    Process partial settlement for a pending wager
+  Scenario: Partial settlement
+    Apply partial settlement amount to wallet
     Validate the same wager_no can be settled in parts before final settlement
-    Wallet balance increases by the partial settlement amount
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - Partial settlement" API with:
@@ -101,10 +97,10 @@ Feature: AMO007 Settle Wager
     And the wallet balance in "<currency>" should increase by 40
 
   @success @business
-  Scenario: Process final settlement without partial settlements that have already occurred
-    Process final settlement with partial settlement history
+  Scenario: Final settlement after partial settlements
+    Apply only remaining amount to wallet
     Validate only unprocessed partial settlement amounts are applied
-    Wallet balance increases by net remaining settlement amount
+    Validate settlement can be completed with partial_settlement_history
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - Partial settlement 1" API with:
@@ -196,7 +192,7 @@ Feature: AMO007 Settle Wager
   Scenario: Support multiple partial settlements for the same wager_no
     Process multiple partial settlements for the same wager_no
     Validate repeated partial settlements are allowed before final settlement
-    Wallet balance increases by each partial settlement amount when processed
+    Wallet increases by each partial settlement amount when processed
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - Partial settlement 1" API with:
@@ -243,10 +239,8 @@ Feature: AMO007 Settle Wager
     And the wallet balance in "<currency>" should increase by 25
 
   @business
-  Scenario: Allow zero amount without balance change
-    Process settlement with zero amount
-    Validate zero amount is accepted as a valid settlement result
-    Wallet balance remains unchanged
+  Scenario: Zero amount
+    Accept request with no wallet change
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - Zero amount - Lose" API with:
@@ -275,9 +269,8 @@ Feature: AMO007 Settle Wager
 
   @edge
   Scenario: Support up to 6 decimal places
-    Process settlement amount with up to 6 decimal places
+    Wallet updates without rounding errors
     Validate decimal precision up to 6 places is supported
-    Wallet balance updates without rounding errors
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - 6 decimal places" API with:
@@ -305,10 +298,10 @@ Feature: AMO007 Settle Wager
     And the wallet balance in "<currency>" should increase by 1.123456
 
   @idempotency
-  Scenario: Handle idempotent full settlement
-    Process duplicate full settlement request with the same transaction_no
-    Validate same reference_id is returned
-    Wallet balance is updated only once
+  Scenario: Idempotent request
+    Process once per transaction_no
+    Validate same reference_id is returned in both attempts
+    Wallet is updated only once
 
     Given I record the current wallet balance in "<currency>"
     When I prepare a request payload with:

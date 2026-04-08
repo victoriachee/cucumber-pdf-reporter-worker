@@ -1,8 +1,8 @@
 @transfer
 Feature: AMO013 Notify Wager Update
   As APISYS
-  I notify wager results during a transfer wallet session
-  Reports gameplay between transfer out and transfer in
+  I notify Merchant of wager activity during a transfer session
+  So that Merchant reconciles transfer out and transfer in values
 
   Background:
     Given the member has positive wallet balance in "<currency>"
@@ -20,8 +20,8 @@ Feature: AMO013 Notify Wager Update
 
   @success
   Scenario: Single wager update
-    Send wager update during or after session
-    Explains difference between transfer out and transfer in (e.g. 100 → 80 = 20 wagered)
+    No direct wallet change
+    Notified wager reflects session activity (e.g. Transfer out 100 → Transfer in 80 = 20 wagered)
 
     When I call AMO013 "Notify Wager Update" API with:
     """
@@ -53,8 +53,8 @@ Feature: AMO013 Notify Wager Update
 
   @success
   Scenario: Multiple wager updates
-    Send multiple wager updates for one session
-    Explains total gameplay contributing to transfer in difference
+    No direct wallet change
+    Validate all wager updates contribute to session total
 
     When I call AMO013 "Notify Wager Update" API with:
     """

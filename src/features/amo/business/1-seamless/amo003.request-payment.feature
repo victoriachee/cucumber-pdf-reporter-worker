@@ -1,17 +1,13 @@
 @seamless
 Feature: AMO003 Request Payment
   As APISYS
-  I want to call the merchant request payment API
-  So that I can deduct wager payment from the member wallet
-  Create a wager in Creating (-1) state and update it to Pending (0) after payment is confirmed
-  Support one or more wager_no under the same parent_wager_no
-  Wallet balance changes by the payment amount only once per transaction_no
+  I send a payment request for a wager (Creating) to Merchant
+  So that Merchant deducts wallet 
+  And APISYS updates wager status to Pending
 
   @success
-  Scenario: Support request payment for a single wager
-    Process request payment for one wager
-    Validate a single wager can be created and paid under one parent_wager_no
-    Wallet balance decreases by the requested payment amount
+  Scenario: Single wager payment
+    Deduct amount from wallet for one wager
 
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
@@ -49,10 +45,8 @@ Feature: AMO003 Request Payment
     And the wallet balance in "<currency>" should decrease by "<deduction_amount>"
 
   @success
-  Scenario: Support request payment for multiple wagers under same parent_wager_no
-    Process request payment for multiple wagers in one request
-    Validate one parent_wager_no can contain multiple wager_no entries
-    Wallet balance decreases by the summed payment amount
+  Scenario: Multiple wagers same parent
+    Deduct wallet once for multiple wagers under same parent_wager_no
 
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
@@ -101,10 +95,9 @@ Feature: AMO003 Request Payment
     And the wallet balance in "<currency>" should decrease by 10
 
   @business
-  Scenario: Return insufficient balance result without balance change
-    Process request payment that exceeds available balance
-    Validate insufficient balance returns failed payment result
-    Wallet balance remains unchanged
+  Scenario: Insufficient balance
+    Accept request with no wallet change
+    Validate correct response is returned
 
     Given I record the current wallet balance in "<currency>"
     And I prepare an amount exceeding the balance by 10
@@ -142,10 +135,8 @@ Feature: AMO003 Request Payment
     And the wallet balance in "<currency>" should remain unchanged
 
   @business
-  Scenario: Allow zero amount without balance change
-    Process request payment with zero amount
-    Validate zero amount is accepted as a valid request payment result
-    Wallet balance remains unchanged
+  Scenario: Zero amount
+    Accept request with no wallet change
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO003 API with:
@@ -182,9 +173,8 @@ Feature: AMO003 Request Payment
 
   @edge
   Scenario: Support up to 6 decimal places
-    Process request payment amount with up to 6 decimal places
+    Wallet updates without rounding errors
     Validate decimal precision up to 6 places is supported
-    Wallet balance decreases without rounding errors
 
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
@@ -221,10 +211,10 @@ Feature: AMO003 Request Payment
     And the wallet balance in "<currency>" should decrease by 1.123456
 
   @idempotency
-  Scenario: Handle idempotent request payment
-    Process duplicate request payment request with the same transaction_no
-    Validate same reference_id is returned
-    Wallet balance is updated only once
+  Scenario: Idempotent request
+    Process once per transaction_no
+    Validate same reference_id is returned in both attempts
+    Wallet is updated only once
 
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
@@ -295,7 +285,7 @@ Feature: AMO003 Request Payment
       """
     Then the response should fail validation
 
-  @validation @optional
+  @validation @contract
   Scenario: Reject amount exceeding 6 decimal places
     Note: APISYS should send valid payload
     Test contract: Amount exceeding 6 decimal places should fail
@@ -329,11 +319,11 @@ Feature: AMO003 Request Payment
       """
     Then the response should fail validation
 
-  @validation @optional
+  @validation @contract
   Scenario Outline: Reject request with missing required field "<required_field>"
     Note: APISYS should send complete payload
     Test contract: missing required fields should fail
-    Wallet balance remains unchanged
+    Wallet remains unchanged
 
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"

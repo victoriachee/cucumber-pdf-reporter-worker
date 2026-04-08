@@ -4,8 +4,6 @@ Feature: Integration: Transfer Wallet Lifecycle
   I want to call transfer APIs in sequence
   So that I can verify wallet balance changes and transfer reversal end to end
 
-  Background:
-    Given a merchant member exists
 
   Scenario: Transfer in, transfer out, cancel transfer, and idempotent cancel
 

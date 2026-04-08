@@ -1,10 +1,9 @@
 @seamless
 Feature: AMO012 Undo Wager
   As APISYS
-  I want to call the merchant undo wager API
-  So that I can correct the wallet effect of a completed wager
-  Only allowed for terminal state wagers (Settled (2) or Cancelled (9))
-  Creates a new Undone (11) state wager referencing origin_wager_no
+  I send undo for a terminal-state wager (Settled or Cancelled) to Merchant
+  So that Merchant reverses prior wallet changes
+  And APISYS creates an Undone wager referencing origin_wager_no
 
   Background:
     # Create the original wager W1 in pending state before each scenario.
@@ -23,10 +22,9 @@ Feature: AMO012 Undo Wager
     Then the response should be successful
 
   @success @business
-  Scenario: Undo the entire wager after settlement
-    Reverse entire settled wager
+  Scenario: Undo entire settled wager
     Validate both bet deduction and settlement payout are negated
-    Final wallet balance returns to pre-wager state
+    Wallet returns to pre-wager state
 
     # Flow:
     # W1 request payment    -> wallet -100
@@ -76,10 +74,9 @@ Feature: AMO012 Undo Wager
     And the wallet balance in "<currency>" should decrease by 150
 
   @business
-  Scenario: Undo the settlement result only
-    Reverse settlement result only
+  Scenario: Undo wager settlement result only
     Validate original wager deduction is retained
-    Final wallet balance reflects only the bet amount
+    Wallet returns to pre-settlement state and retains original wager deduction
 
     # Flow:
     # W1 request payment     -> wallet -100
@@ -129,10 +126,10 @@ Feature: AMO012 Undo Wager
     And the wallet balance in "<currency>" should decrease by 50
 
   @business
-  Scenario: Undo the cancellation of a wager
+  Scenario: Undo wager cancellation
     Reverse cancellation effect
-    Validate refunded wager amount is deducted again
-    Final wallet balance reflects original bet deduction
+    Validate refunded amount is deducted again
+    Wallet returns to pre-cancellation state and retains original wager deduction
 
     # Flow:
     # W1 request payment  -> wallet -100
@@ -176,10 +173,8 @@ Feature: AMO012 Undo Wager
     And the wallet balance in "<currency>" should decrease by 100
 
   @business
-  Scenario: Allow zero amount without balance change
-    Process undo with zero amount
-    Validate flexible amount handling by game side
-    Wallet balance remains unchanged
+  Scenario: Zero amount
+    Accept request with no wallet change
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:
@@ -224,9 +219,8 @@ Feature: AMO012 Undo Wager
 
   @edge
   Scenario: Support up to 6 decimal places
-    Process undo with decimal amount up to 6 places
+    Wallet updates without rounding errors
     Validate decimal precision up to 6 places is supported
-    Wallet balance updates without rounding errors
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:
@@ -270,10 +264,10 @@ Feature: AMO012 Undo Wager
     And the wallet balance in "<currency>" should decrease by 149.999999
 
   @idempotency
-  Scenario: Handle idempotent undo wager
-    Process duplicate undo request with same transaction_no
-    Validate same reference_id is returned
-    Wallet balance is updated only once
+  Scenario: Idempotent request
+    Process once per transaction_no
+    Validate same reference_id is returned in both attempts
+    Wallet is updated only once
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:

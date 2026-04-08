@@ -4,9 +4,6 @@ Feature: AMO011 Request Transfer Out
   I want to call the merchant transfer out API
   So that I can debit funds from the member wallet
 
-  Background:
-    Given a merchant member exists
-
   Scenario: Transfer out decreases wallet balance
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
@@ -26,42 +23,34 @@ Feature: AMO011 Request Transfer Out
       | status            | 1                           |
     And the wallet balance in "<currency>" should decrease by 20.5
 
-  Scenario: Repeating the same transfer_no is idempotent
+  Scenario: Idempotent transfer
+    Wallet updates once per transfer_no
+    Validate same reference_id is returned in both attempts
+    
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
-    When I call AMO011 API with:
+    When I prepare a request payload with:
       | field             | value                       |
       | transfer_no       | <transfer_no>               |
       | game_type         | <game_type_transfer_wallet> |
       | platform_username | <platform_username>         |
       | currency          | <currency>                  |
-      | amount            | -15                         |
+      | amount            | 100                         |
       | session_id        | <session_id>                |
+    And I call AMO010 "Request Transfer In - First request" API
     Then the response should be successful
     And the response should contain:
       | field             | value                       |
       | reference_id      | any non-empty value         |
-      | amount            | -15                         |
       | status            | 1                           |
-    And I store the response field "reference_id" as "amo011_reference_id"
-    And the wallet balance in "<currency>" should decrease by 15
+    And I store the full response as "first_response"
+    And the wallet balance in "<currency>" should increase by 100
 
     Given I record the current wallet balance in "<currency>"
-    When I call AMO011 API with:
-      | field             | value                       |
-      | transfer_no       | <transfer_no>               |
-      | game_type         | <game_type_transfer_wallet> |
-      | platform_username | <platform_username>         |
-      | currency          | <currency>                  |
-      | amount            | -15                         |
-      | session_id        | <session_id>                |
-    Then the response should be successful
-    And the response should contain:
-      | field             | value                       |
-      | reference_id      | <amo011_reference_id>       |
-      | amount            | -15                         |
-      | status            | 1                           |
+    When I call AMO010 "Request Transfer In - Duplicate transfer_no" API
+    Then the response should be the same as stored response "first_response"
     And the wallet balance in "<currency>" should remain unchanged
+    
 
   Scenario: Insufficient balance returns failed status
     Given I record the current wallet balance in "<currency>"

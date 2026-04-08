@@ -4,9 +4,6 @@ Feature: AMO014 Cancel Transfer
   I want to call the merchant cancel transfer API
   So that I can reverse a previous transfer ledger
 
-  Background:
-    Given a merchant member exists
-
   Scenario: Cancel transfer returns reference_id for an existing transfer in and is idempotent
     # request transfer in
     When I call AMO010 "Request Transfer In" API with:

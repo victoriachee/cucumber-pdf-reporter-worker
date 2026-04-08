@@ -1,21 +1,18 @@
 @seamless
 Feature: AMO004 Notify Payment Failed
   As APISYS
-  I want to notify the merchant when a payment fails
-  So that I can reverse the wallet effect of an unsuccessful request payment
-  Fail all wagers under the same parent_wager_no
-  Update a Creating (-1) wager to Creation Failed (7) state
-  Wallet balance is restored only when a prior request payment exists
+  I send a payment failure notification for a wager (Creating) to Merchant
+  So that Merchant restores wallet
+  And APISYS updates wager status to Creation Failed
 
   Background:
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
 
   @success
-  Scenario: Notify payment failure for an existing request payment
-    Process payment failure for an existing request payment
-    Validate all wagers under the same parent_wager_no are failed together
-    Wallet balance increases by the previously deducted amount
+  Scenario: Existing payment
+    Restore wallet for failed payment
+    Fails all wagers under the same parent_wager_no
 
     Given I prepare a deduction amount of 100
     When I call AMO003 "Request Payment" API with:
@@ -60,10 +57,8 @@ Feature: AMO004 Notify Payment Failed
     And the wallet balance in "<currency>" should increase by 100
 
   @business
-  Scenario: Return success when no existing request payment is found
-    Process payment failure without an existing request payment
-    Validate request is accepted when no matching parent_wager_no exists
-    Wallet balance remains unchanged
+  Scenario: No existing payment
+    Accept request with no wallet change
 
     When I call AMO004 "Notify Payment Failed" API with:
       | field             | value               |
