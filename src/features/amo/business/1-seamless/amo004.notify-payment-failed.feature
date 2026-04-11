@@ -1,9 +1,9 @@
 @seamless
 Feature: AMO004 Notify Payment Failed
   As APISYS
-  I send a payment failure notification for a wager (Creating) to Merchant
+  I notify payment failure for a wager (Creating)
   So that Merchant restores wallet
-  And APISYS updates wager status to Creation Failed
+  And APISYS updates wager to Creation Failed
 
   Background:
     Given the member has positive wallet balance in "<currency>"
@@ -11,7 +11,7 @@ Feature: AMO004 Notify Payment Failed
 
   @success
   Scenario: Existing payment
-    Restore wallet for failed payment
+    Restore deducted wallet balance for failed payment
     Fails all wagers under the same parent_wager_no
 
     Given I prepare a deduction amount of 100

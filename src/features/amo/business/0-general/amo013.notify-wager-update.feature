@@ -1,8 +1,8 @@
 @general
 Feature: AMO013 Notify Wager Metadata Update
   As APISYS
-  I notify Merchant of wager metadata changes
-  So that Merchant fetches latest wager data via AGI004 Get List of Wagers API
+  I notify wager metadata changes
+  So that Merchant syncs latest data via AGI004 Get List of Wagers API
 
   @success
   Scenario: Notify single metadata update
@@ -94,7 +94,7 @@ Feature: AMO013 Notify Wager Metadata Update
 
   @validation @contract
   Scenario: Allow nullable fields
-    Nullable fields are accepted
+    Nullable fields accepted
 
     When I call AMO013 API with:
     """

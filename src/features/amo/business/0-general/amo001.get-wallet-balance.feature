@@ -1,8 +1,7 @@
 @general
 Feature: AMO001 Get Member Wallet Balance
   As APISYS
-  I request wallet balances from Merchant
-  So that APISYS can use balances for wallet actions and display
+  I request wallet balances from Merchant for wallet actions and display
 
   @success
   Scenario: Get balances for requested currencies
@@ -54,7 +53,7 @@ Feature: AMO001 Get Member Wallet Balance
 
   @validation @contract
   Scenario: Reject unsupported currency
-    All currencies must be supported
+    Invalid currency rejected
 
     When I call AMO001 API with:
       | field             | value                  |
@@ -64,8 +63,7 @@ Feature: AMO001 Get Member Wallet Balance
 
   @validation @contract
   Scenario Outline: Reject request with missing required field "<required_field>"
-    Reject request with missing required field
-    Validate request is rejected when required payload is incomplete
+    Request rejected when required field missing
 
     When I prepare a request payload with:
       | field             | value               |

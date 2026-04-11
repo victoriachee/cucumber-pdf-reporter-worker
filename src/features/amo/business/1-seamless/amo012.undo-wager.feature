@@ -1,7 +1,7 @@
 @seamless
 Feature: AMO012 Undo Wager
   As APISYS
-  I send undo for a terminal-state wager (Settled or Cancelled) to Merchant
+  I undo a terminal-state wager (Settled or Cancelled)
   So that Merchant reverses prior wallet changes
   And APISYS creates an Undone wager referencing origin_wager_no
 
@@ -75,7 +75,7 @@ Feature: AMO012 Undo Wager
 
   @business
   Scenario: Undo wager settlement result only
-    Validate original wager deduction is retained
+    Validate settlement result is negated and original wager deduction is retained
     Wallet returns to pre-settlement state and retains original wager deduction
 
     # Flow:
@@ -219,8 +219,8 @@ Feature: AMO012 Undo Wager
 
   @edge
   Scenario: Support up to 6 decimal places
-    Wallet updates without rounding errors
     Validate decimal precision up to 6 places is supported
+    Wallet updates without rounding errors
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:

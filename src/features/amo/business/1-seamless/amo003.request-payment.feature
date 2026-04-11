@@ -1,9 +1,9 @@
 @seamless
 Feature: AMO003 Request Payment
   As APISYS
-  I send a payment request for a wager (Creating) to Merchant
+  I request payment for a wager (Creating) 
   So that Merchant deducts wallet 
-  And APISYS updates wager status to Pending
+  And APISYS updates wager to Pending
 
   @success
   Scenario: Single wager payment
@@ -96,7 +96,7 @@ Feature: AMO003 Request Payment
 
   @business
   Scenario: Insufficient balance
-    Accept request with no wallet change
+    Request accepted with no wallet deduction
     Validate correct response is returned
 
     Given I record the current wallet balance in "<currency>"
@@ -173,8 +173,8 @@ Feature: AMO003 Request Payment
 
   @edge
   Scenario: Support up to 6 decimal places
-    Wallet updates without rounding errors
     Validate decimal precision up to 6 places is supported
+    Wallet updates without rounding errors
 
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
@@ -256,7 +256,7 @@ Feature: AMO003 Request Payment
 
   @validation
   Scenario: Reject positive amount
-    Validate request payment amount must not be positive
+    Validate amount must not be positive
 
     When I call AMO003 API with:
       """
@@ -287,8 +287,7 @@ Feature: AMO003 Request Payment
 
   @validation @contract
   Scenario: Reject amount exceeding 6 decimal places
-    Note: APISYS should send valid payload
-    Test contract: Amount exceeding 6 decimal places should fail
+    Validate request is rejected when amount precision is invalid
 
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
@@ -321,8 +320,7 @@ Feature: AMO003 Request Payment
 
   @validation @contract
   Scenario Outline: Reject request with missing required field "<required_field>"
-    Note: APISYS should send complete payload
-    Test contract: missing required fields should fail
+    Request rejected when required field missing
     Wallet remains unchanged
 
     Given the member has positive wallet balance in "<currency>"

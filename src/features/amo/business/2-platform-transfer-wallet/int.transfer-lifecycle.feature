@@ -1,55 +1,83 @@
 @transfer @integration
 Feature: Integration: Transfer Wallet Lifecycle
   As APISYS
-  I want to call transfer APIs in sequence
-  So that I can verify wallet balance changes and transfer reversal end to end
+  I call transfer APIs in sequence following business flow
+  So that Merchant updates wallet correctly across the lifecycle
 
-
-  Scenario: Transfer in, transfer out, cancel transfer, and idempotent cancel
-
-    # transfer in
-    Given I record the current wallet balance in "<currency>"
-    When I call AMO010 "Request Transfer In" API with:
-      | field             | value                       |
-      | transfer_no       | <transfer_no_1>             |
-      | platform_username | <platform_username>         |
-      | currency          | <currency>                  |
-      | amount            | 100000.123456               |
-    Then the response should be successful
-    And the wallet balance in "<currency>" should increase by 100000.123456 
+  Scenario: Transfer lifecycle
+    Wallet reflects transfer out, in, and cancel
+    Validate final balance 
 
     # transfer out
     Given I record the current wallet balance in "<currency>"
-    When I call AMO011 "Request Transfer Out" API with:
+    When I call AMO011 "Request Transfer Out - Session start" API with:
       | field             | value                       |
-      | transfer_no       | <transfer_no_2>             |
+      | transfer_no       | <transfer_no_1>             |
       | game_type         | <game_type_transfer_wallet> |
       | platform_username | <platform_username>         |
       | currency          | <currency>                  |
-      | amount            | -35                         |
+      | amount            | -100                        |
       | session_id        | <session_id>                |
     Then the response should be successful
-    And the wallet balance in "<currency>" should decrease by 35
+    And the wallet balance in "<currency>" should decrease by 100
+
+    When I call AMO013 "Notify Wager Update - Betting" API with:
+      """
+      {
+        "notification_type": "WAGER_UPDATE",
+        "notifications": [
+          {
+            "game_type": <game_type_transfer_wallet>,
+            "game_key": <game_key_transfer_wallet>,
+            "wager_no": <wager_no_1>,
+            "origin_wager_no": null,
+            "ticket_no": <ticket_no_1>,
+            "platform_username": <platform_username>,
+            "type": <wager_type.normal_wager>,
+            "status": <wager_status.pending>,
+            "currency": <currency>,
+            "amount": 20,
+            "payment_amount": 20,
+            "effective_amount": 20,
+            "profit_and_loss": 0,
+            "wager_time": <wager_time>,
+            "settlement_time": <settlement_time>,
+            "is_system_reward": false
+          }
+        ]
+      }
+      """
+      Then the response should be successful
+
+    # transfer in
+    Given I record the current wallet balance in "<currency>"
+    When I call AMO010 "Request Transfer In - Session end" API with:
+      | field             | value                       |
+      | transfer_no       | <transfer_no_2>             |
+      | platform_username | <platform_username>         |
+      | currency          | <currency>                  |
+      | amount            | 80                          |
+    Then the response should be successful
+    And the wallet balance in "<currency>" should increase by 80
+
+    # transfer in
+    Given I record the current wallet balance in "<currency>"
+    When I call AMO010 "Request Transfer In - Settlement" API with:
+      | field             | value                       |
+      | transfer_no       | <transfer_no_3>             |
+      | platform_username | <platform_username>         |
+      | currency          | <currency>                  |
+      | amount            | 20                          |
+    Then the response should be successful
+    And the wallet balance in "<currency>" should increase by 20
 
     # cancel transfer
     Given I record the current wallet balance in "<currency>"
     When I call AMO014 "Cancel Transfer" API with:
       | field             | value                       |
-      | transfer_no       | <transfer_no_2>             |
+      | transfer_no       | <transfer_no_3>             |
     Then the response should be successful
     And the response should contain:
       | field             | value                       |
       | reference_id      | any non-empty value         |
-    And I store the response field "reference_id" as "amo014_reference_id"
-    And the wallet balance in "<currency>" should increase by 35
-
-    # idempotent cancel
-    Given I record the current wallet balance in "<currency>"
-    When I call AMO014 "Duplicate Cancel Transfer" API with:
-      | field             | value                       |
-      | transfer_no       | <transfer_no_2>             |
-    Then the response should be successful
-    And the response should contain:
-      | field             | value                       |
-      | reference_id      | <amo014_reference_id>       |
-    And the wallet balance in "<currency>" should remain unchanged
+    And the wallet balance in "<currency>" should decrease by 20

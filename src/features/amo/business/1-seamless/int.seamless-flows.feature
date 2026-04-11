@@ -1,10 +1,9 @@
 @seamless @integration
 Feature: Integration: Seamless Wager Correction Flows
   As APISYS
-  I want seamless wager lifecycle APIs to work together correctly
-  So that corrective flows apply the expected wallet adjustments
-  Support request payment, payment failure, settlement, cancellation, undo, and resettlement in one lifecycle
-  Wallet balance reflects only the net effect of processed lifecycle steps
+  I call Merchant wager lifecycle APIs in sequence
+  To validate support for valid business correction flows
+  And ensure the wallet reflects the correct net outcome
 
   Background:
     Given the member has positive wallet balance in "<currency>"
@@ -43,9 +42,8 @@ Feature: Integration: Seamless Wager Correction Flows
     And the wallet balance in "<currency>" should decrease by 100
 
   @success @business
-  Scenario: Cancel a pending wager then resettle it
-    Process resettlement after a wager is cancelled
-    Validate a cancelled wager can be corrected by resettlement
+  Scenario: Cancel then resettle
+    Cancel a pending wager, then apply a final result via resettlement
     Wallet balance reflects the cancel refund and resettlement amount
 
     Given I record the current wallet balance in "<currency>"
@@ -87,12 +85,10 @@ Feature: Integration: Seamless Wager Correction Flows
       | reference_id | any non-empty value |
     And the wallet balance in "<currency>" should increase by 150
   
-  
 
   @success @business
-  Scenario: Cancel a partially settled wager then resettle it
-    Process resettlement after a partially settled wager is cancelled
-    Validate cancellation and resettlement work across partial settlement flow
+  Scenario: Partial settle, cancel, then resettle
+    Partially settle a wager, cancel it, then apply a final result via resettlement
     Wallet balance reflects each processed correction step
 
     Given I record the current wallet balance in "<currency>"
@@ -154,9 +150,8 @@ Feature: Integration: Seamless Wager Correction Flows
     And the wallet balance in "<currency>" should increase by 150
 
   @success @business
-  Scenario: Undo a cancelled wager then resettle it
-    Process resettlement after cancellation is undone
-    Validate an undone wager can be corrected by resettlement
+  Scenario: Cancel, undo, then resettle
+  Cancel a wager, undo the cancellation, then apply a final result via resettlement
     Wallet balance reflects each processed correction step
 
     Given I record the current wallet balance in "<currency>"
@@ -219,9 +214,8 @@ Feature: Integration: Seamless Wager Correction Flows
     And the wallet balance in "<currency>" should increase by 150
 
   @success @business
-  Scenario: Undo a settled wager then resettle it
-    Process resettlement after a settled wager is undone
-    Validate an undone wager can be corrected by resettlement
+  Scenario: Settle, undo, then resettle
+    Settle a wager, undo the settlement, then apply a new result via resettlement
     Wallet balance reflects each processed correction step
 
     Given I record the current wallet balance in "<currency>"

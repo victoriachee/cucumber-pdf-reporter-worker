@@ -1,9 +1,9 @@
 @seamless
 Feature: AMO007 Settle Wager
   As APISYS
-  I send settlement for a wager (Pending or Partial Settled) to Merchant
-  So that Merchant updates wallet
-  And APISYS updates wager status to Settled or Partial Settled
+  I settle a wager (Pending or Partial Settled)
+  So that Merchant adjusts the wallet
+  And APISYS updates wager to Settled or Partial Settled
 
   Background:
     # create a pending wager before each settlement scenario
@@ -269,8 +269,8 @@ Feature: AMO007 Settle Wager
 
   @edge
   Scenario: Support up to 6 decimal places
-    Wallet updates without rounding errors
     Validate decimal precision up to 6 places is supported
+    Wallet updates without rounding errors
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO007 "Settle Wager - 6 decimal places" API with:

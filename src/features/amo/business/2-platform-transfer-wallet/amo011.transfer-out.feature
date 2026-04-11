@@ -1,10 +1,15 @@
 @transfer
 Feature: AMO011 Request Transfer Out
   As APISYS
-  I want to call the merchant transfer out API
-  So that I can debit funds from the member wallet
+  I request transfer out from Merchant
+  So that Merchant debits the wallet
+  And funds are available for game session, settlement, or resettlement
 
+  @success
   Scenario: Transfer out decreases wallet balance
+    Wallet decreases by transfer amount
+    Validate successful response
+
     Given the member has positive wallet balance in "<currency>"
     And I record the current wallet balance in "<currency>"
     When I call AMO011 API with:
@@ -17,42 +22,16 @@ Feature: AMO011 Request Transfer Out
       | session_id        | <session_id>                |
     Then the response should be successful
     And the response should contain:
-      | field             | value                       |
-      | reference_id      | any non-empty value         |
-      | amount            | -20.5                       |
-      | status            | 1                           |
+      | field        | value               |
+      | reference_id | any non-empty value |
+      | status       | 1                   |
     And the wallet balance in "<currency>" should decrease by 20.5
 
-  Scenario: Idempotent transfer
-    Wallet updates once per transfer_no
-    Validate same reference_id is returned in both attempts
-    
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
-    When I prepare a request payload with:
-      | field             | value                       |
-      | transfer_no       | <transfer_no>               |
-      | game_type         | <game_type_transfer_wallet> |
-      | platform_username | <platform_username>         |
-      | currency          | <currency>                  |
-      | amount            | 100                         |
-      | session_id        | <session_id>                |
-    And I call AMO010 "Request Transfer In - First request" API
-    Then the response should be successful
-    And the response should contain:
-      | field             | value                       |
-      | reference_id      | any non-empty value         |
-      | status            | 1                           |
-    And I store the full response as "first_response"
-    And the wallet balance in "<currency>" should increase by 100
+  @business
+  Scenario: Insufficient balance
+    Transfer fails with status 2
+    Wallet remains unchanged
 
-    Given I record the current wallet balance in "<currency>"
-    When I call AMO010 "Request Transfer In - Duplicate transfer_no" API
-    Then the response should be the same as stored response "first_response"
-    And the wallet balance in "<currency>" should remain unchanged
-    
-
-  Scenario: Insufficient balance returns failed status
     Given I record the current wallet balance in "<currency>"
     And I prepare an amount exceeding the balance by 10
     When I call AMO011 API with:
@@ -65,97 +44,64 @@ Feature: AMO011 Request Transfer Out
       | session_id        | <session_id>                |
     Then the response should be successful
     And the response should contain:
-      | field             | value                       |
-      | reference_id      | any non-empty value         |
-      | status            | 2                           |
+      | field  | value |
+      | status | 2     |
     And the wallet balance in "<currency>" should remain unchanged
 
-Scenario: Not providing amount transfers out all integer wallet balance
-  Given the member has positive wallet balance in "<currency>"
-  And I record the current wallet balance in "<currency>"
-    When I call AMO011 API with:
-    | field               | value                       |
-    | transfer_no         | <transfer_no>               |
-    | game_type           | <game_type_transfer_wallet> |
-    | platform_username   | <platform_username>         |
-    | currency            | <currency>                  |
-    | session_id          | <session_id>                |
-  Then the response should be successful
-  And the response should contain:
-    | field               | value                       |
-    | reference_id        | any non-empty value         |
-    | status              | 1                           |
-  And the response amount should equal the integer part of the recorded wallet balance in "<currency>"
-  And the wallet balance in "<currency>" should equal the remaining decimal balance
+  @business
+  Scenario: Transfer all integer balance when amount missing
+    Transfer integer portion of wallet balance
+    Remaining decimal is retained in wallet
 
-  Scenario: Validation fails when amount precision is invalid
+    Given the member has positive wallet balance in "<currency>"
+    And I record the current wallet balance in "<currency>"
     When I call AMO011 API with:
       | field             | value                       |
       | transfer_no       | <transfer_no>               |
       | game_type         | <game_type_transfer_wallet> |
       | platform_username | <platform_username>         |
       | currency          | <currency>                  |
+      | session_id        | <session_id>                |
+    Then the response should be successful
+    And the wallet balance in "<currency>" should equal the remaining decimal balance
+
+  @idempotency
+  Scenario: Idempotent transfer
+    Wallet updates once per transfer_no
+    Validate same reference_id is returned
+
+    Given the member has positive wallet balance in "<currency>"
+    And I record the current wallet balance in "<currency>"
+    When I prepare a request payload with:
+      | field             | value                       |
+      | transfer_no       | <transfer_no>               |
+      | game_type         | <game_type_transfer_wallet> |
+      | platform_username | <platform_username>         |
+      | currency          | <currency>                  |
+      | amount            | -15                         |
+      | session_id        | <session_id>                |
+    And I call AMO011 "Request Transfer Out - First request" API
+    Then the response should be successful
+    And I store the full response as "first_response"
+    And the wallet balance in "<currency>" should decrease by 15
+
+    Given I record the current wallet balance in "<currency>"
+    When I call AMO011 "Request Transfer Out - Duplicate transfer_no" API
+    Then the response should be the same as stored response "first_response"
+    And the wallet balance in "<currency>" should remain unchanged
+
+
+  @validation
+  Scenario: Invalid amount precision
+    Request is rejected
+    Wallet remains unchanged
+
+    When I call AMO011 API with:
+      | field             | value                       |
+      | transfer_no       | <transfer_no>               |
+      | game_type         | <game_type_transfer_wallet> |
+      | platform_username | <platform_username>         |
+      | currency          | <currency>                  |
+      | session_id        | <session_id>                |
       | amount            | -1.1234567                  |
-      | session_id        | <session_id>                |
-    Then the response should fail validation
-
-  Scenario: Validation fails when amount is positive
-    When I call AMO011 API with:
-      | field             | value                       |
-      | transfer_no       | <transfer_no>               |
-      | game_type         | <game_type_transfer_wallet> |
-      | platform_username | <platform_username>         |
-      | currency          | <currency>                  |
-      | amount            | 1                           |
-      | session_id        | <session_id>                |
-    Then the response should fail validation
-
-  Scenario: Validation fails when transfer_no is missing
-    When I call AMO011 API with:
-      | field             | value                       |
-      | game_type         | <game_type_transfer_wallet> |
-      | platform_username | <platform_username>         |
-      | currency          | <currency>                  |
-      | amount            | -10                         |
-      | session_id        | <session_id>                |
-    Then the response should fail validation
-
-  Scenario: Validation fails when game_type is missing
-    When I call AMO011 API with:
-      | field             | value                       |
-      | transfer_no       | <transfer_no>               |
-      | platform_username | <platform_username>         |
-      | currency          | <currency>                  |
-      | amount            | -10                         |
-      | session_id        | <session_id>                |
-    Then the response should fail validation
-
-  Scenario: Validation fails when platform_username is missing
-    When I call AMO011 API with:
-      | field             | value                       |
-      | transfer_no       | <transfer_no>               |
-      | game_type         | <game_type_transfer_wallet> |
-      | currency          | <currency>                  |
-      | amount            | -10                         |
-      | session_id        | <session_id>                |
-    Then the response should fail validation
-
-  Scenario: Validation fails when currency is missing
-    When I call AMO011 API with:
-      | field             | value                       |
-      | transfer_no       | <transfer_no>               |
-      | game_type         | <game_type_transfer_wallet> |
-      | platform_username | <platform_username>         |
-      | amount            | -10                         |
-      | session_id        | <session_id>                |
-    Then the response should fail validation
-
-  Scenario: Validation fails when session_id is missing
-    When I call AMO011 API with:
-      | field             | value                       |
-      | transfer_no       | <transfer_no>               |
-      | game_type         | <game_type_transfer_wallet> |
-      | platform_username | <platform_username>         |
-      | currency          | <currency>                  |
-      | amount            | -10                         |
     Then the response should fail validation

@@ -1,7 +1,7 @@
 @seamless
 Feature: AMO009 Resettle Wager
   As APISYS
-  I send resettlement for a terminal-state wager (Settled, Cancelled, Undone) to Merchant
+  I resettle a terminal-state wager (Settled, Cancelled, Undone)
   So that Merchant adjusts the wallet
   And APISYS creates a Resettled wager referencing origin_wager_no
 
@@ -139,8 +139,8 @@ Feature: AMO009 Resettle Wager
 
   @edge
   Scenario: Support up to 6 decimal places
-    Wallet updates without rounding errors
     Validate decimal precision up to 6 places is supported
+    Wallet updates without rounding errors
 
     Given I record the current wallet balance in "<currency>"
     When I call AMO009 "Resettle Wager - 6 decimal places" API with:

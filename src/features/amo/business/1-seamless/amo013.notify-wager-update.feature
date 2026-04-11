@@ -1,9 +1,8 @@
 @seamless
 Feature: AMO013 Notify Wager Update
   As APISYS
-  I notify Merchant of wager updates
-  So that Merchant has the latest wager details
-  E.g. used when values are finalized later or corrections are needed
+  I notify Merchant of updated wager details after corrections
+  So that Merchant has the latest wager information
 
   Background:
     Given the member has positive wallet balance in "<currency>"
@@ -38,8 +37,8 @@ Feature: AMO013 Notify Wager Update
 
   @success
   Scenario: Update after request payment
-    No wallet change
     Validate updated wager values are received
+    No wallet change
 
     When I call AMO013 "Notify Wager Update" API with:
     """
@@ -71,8 +70,8 @@ Feature: AMO013 Notify Wager Update
 
   @success
   Scenario: Update after settlement
-    No wallet change
     Validate updated wager values are received
+    No wallet change
 
     When I call AMO007 "Settle Wager" API with:
       """

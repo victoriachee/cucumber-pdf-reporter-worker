@@ -1,9 +1,9 @@
 @seamless
 Feature: AMO008 Cancel Wager
   As APISYS
-  I send a cancel request for a wager (Pending or Partial Settled) to Merchant
-  So that Merchant restores wallet when necessary
-  And APISYS updates wager status to Cancelled
+  I cancel a wager (Pending or Partial Settled)
+  So that Merchant restores wallet when required
+  And APISYS updates wager to Cancelled
 
   Background:
     Given the member has positive wallet balance in "<currency>"
