@@ -24,29 +24,67 @@ async function getWalletBalance(world) {
   return new Decimal(balance);
 }
 
+/**
+ * Given the "<currency>" wallet has at least "1" balance
+ * Given the "<currency>" wallet has at least "10" balance and I prepare "deduction_amount"
+ */
 Given(
-  "the member has positive wallet balance in {string}",
-  async function (currencyPlaceholder) {
-    const currency = this.resolve(currencyPlaceholder);
+  /^the "([^"]+)" wallet has at least "([^"]+)" balance(?: and I prepare "([^"]+)")?$/,
+  async function (currencyKey, minimumKey, amountKey) {
+    const currency = this.resolve(currencyKey);
+    const minimum = new Decimal(this.resolve(minimumKey));
     const balance = await getWalletBalance(this);
 
-    if (balance.lte(0)) {
-      throw this.error("Wallet balance must be positive for this scenario", {
+    if (balance.lt(minimum)) {
+      throw this.error("Wallet balance is below required minimum", {
         currency,
         balance: balance.toString(),
+        minimum: minimum.toString(),
       });
     }
 
-    await this.attachInfo("Balance", {
+    this.vars.currency = currency;
+    this.vars.beforeBalances ??= {};
+    this.vars.beforeBalances[currency] = balance;
+
+    if (amountKey) {
+      const amount = minimum;
+
+      if (amount.lte(0)) {
+        throw this.error("Prepared amount must be positive", {
+          amount: preparedAmount.toString(),
+        });
+      }
+
+      if (amount.gt(balance)) {
+        throw this.error("Prepared amount exceeds available balance", {
+          currency,
+          balance: balance.toString(),
+          amount: preparedAmount.toString(),
+        });
+      }
+
+      this.vars[amountKey] = amount.toString();
+
+      await this.attachInfo("Amount prepared", {
+        Context: currency,
+        Balance: `Before ${balance}`,
+        StoredAs: amountKey,
+      });
+
+      return;
+    }
+
+    await this.attachInfo("Balance checked", {
       Context: currency,
-      BalanceFlow: `Before ${balance} → After ${balance}`,
-      Delta: `Actual 0 / Expected 0`,
+      Balance: `Current ${balance}`,
+      MinimumRequired: minimum.toString(),
     });
   },
 );
 
 Given(
-  "I record the current wallet balance in {string}",
+  "I record the current balance in {string} wallet",
   async function (currencyPlaceholder) {
     const currency = this.resolve(currencyPlaceholder);
     const balance = await getWalletBalance(this);
@@ -56,8 +94,7 @@ Given(
 
     await this.attachInfo("Balance recorded", {
       Context: currency,
-      BalanceFlow: `Before ${balance} → After ${balance}`,
-      Delta: `Actual 0 / Expected 0`,
+      Balance: `Before ${balance}`,
     });
   },
 );
@@ -77,41 +114,11 @@ Given(
 
     await this.attachInfo("Amount prepared (exceeding)", {
       Context: currency,
-      BalanceFlow: `Before ${balance} → After ${available}`,
+      Balance: `Before ${balance} → After ${available}`,
       Delta: `Actual +${extra} / Expected ${amount}`,
     });
   },
 );
-
-Given("I prepare a deduction amount of {float}", async function (inputAmount) {
-  const currency = this.vars.currency;
-
-  const balance =
-    this.vars.beforeBalances?.[currency] ?? (await getWalletBalance(this));
-
-  const amount = new Decimal(inputAmount);
-
-  if (amount.lte(0)) {
-    throw this.error(`Deduction amount must be positive`, {
-      amount: amount.toString(),
-    });
-  }
-
-  if (balance.lte(0) || amount.gte(balance)) {
-    throw this.error(`Deduction amount exceeds available balance`, {
-      balance: balance.toString(),
-      amount: amount.toString(),
-    });
-  }
-
-  this.vars.deduction_amount = amount.toString();
-
-  await this.attachInfo("Amount prepared (deduction)", {
-    Context: currency,
-    BalanceFlow: `Before ${balance} → After ${balance.minus(amount)}`,
-    Delta: `Actual -${amount} / Expected -${amount}`,
-  });
-});
 
 async function assertWalletBalance(
   world,
@@ -143,7 +150,7 @@ async function assertWalletBalance(
     [
       `Wallet balance assertion failed`,
       `  Context         : ${operation} | ${currency}`,
-      `  BalanceFlow     : Before ${before} → After ${after}`,
+      `  Balance     : Before ${before} → After ${after}`,
       `  Delta           : Actual ${actualChange} / Expected ${expectedChange}`,
       `  ExpectedBalance : ${expected}`,
     ].join("\n"),
@@ -151,14 +158,14 @@ async function assertWalletBalance(
 
   await world.attachInfo("Wallet balance check", {
     Context: `${operation} | ${currency}`,
-    BalanceFlow: `Before ${before} → After ${after}`,
+    Balance: `Before ${before} → After ${after}`,
     Delta: `Actual ${actualChange} / Expected ${expectedChange}`,
     Expected: expected.toString(),
   });
 }
 
 Then(
-  /^the wallet balance in "([^"]+)" should (increase|decrease) by "?([^"]+)"?$/,
+  /^the balance in "([^"]+)" wallet should (increase|decrease) by "?([^"]+)"?$/,
   async function (currencyPlaceholder, operation, amountPlaceholder) {
     await assertWalletBalance(
       this,
@@ -170,43 +177,31 @@ Then(
 );
 
 Then(
-  "the wallet balance in {string} should remain unchanged",
+  "the balance in {string} wallet should remain unchanged",
   async function (currencyPlaceholder) {
     await assertWalletBalance(this, currencyPlaceholder, 0, "unchanged");
   },
 );
 
-Then(
-  "the response amount should equal the integer part of the recorded wallet balance in {string}",
-  function (currencyPlaceholder) {
-    const currency = this.resolve(currencyPlaceholder);
+Then("I save the transferred integer amount as {string}", function (varName) {
+  const currency = this.vars.currency;
+  const beforeBalance = this.vars.beforeBalances?.[currency];
 
-    const before = this.vars.beforeBalances?.[currency];
-    const actual = new Decimal(this.responseData()?.amount);
+  if (!beforeBalance) {
+    throw this.error("Current balance was not recorded", { currency });
+  }
 
-    if (!before) {
-      throw this.error("No recorded balance found for comparison", {
-        currency,
-      });
-    }
+  const transferredAmount = new Decimal(beforeBalance).floor().toString();
 
-    const expected = new Decimal(before).floor().negated();
+  this.vars[varName] = transferredAmount;
 
-    if (!actual.equals(expected)) {
-      throw this.error(
-        [
-          `Integer transfer assertion failed`,
-          `  Context     : ${currency}`,
-          `  BalanceFlow : Before ${before} → After N/A`,
-          `  Delta       : Actual ${actual} / Expected ${expected}`,
-        ].join("\n"),
-      );
-    }
-  },
-);
+  this.attachInfo("Stored", {
+    [varName]: transferredAmount,
+  });
+});
 
 Then(
-  "the wallet balance in {string} should equal the remaining decimal balance",
+  "the balance in {string} wallet should equal the remaining decimal balance",
   async function (currencyPlaceholder) {
     const currency = this.resolve(currencyPlaceholder);
 
@@ -226,7 +221,7 @@ Then(
         [
           `Remaining decimal assertion failed`,
           `  Context     : ${currency}`,
-          `  BalanceFlow : Before ${before} → After ${after}`,
+          `  Balance : Before ${before} → After ${after}`,
           `  Delta       : Actual ${after.minus(before)} / Expected ${expected}`,
         ].join("\n"),
       );
@@ -234,7 +229,7 @@ Then(
 
     await this.attachInfo("Remaining decimal check", {
       Context: currency,
-      BalanceFlow: `Before ${before} → After ${after}`,
+      Balance: `Before ${before} → After ${after}`,
       Delta: `Actual ${after.minus(before)} / Expected ${expected}`,
     });
   },

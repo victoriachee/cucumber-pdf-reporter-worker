@@ -9,9 +9,8 @@ Feature: AMO003 Request Payment
   Scenario: Single wager payment
     Deduct amount from wallet for one wager
 
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
-    And I prepare a deduction amount of 10
+    Given the "<currency>" wallet has at least "10" balance and I prepare "deduction_amount"
+    And I record the current balance in "<currency>" wallet
     When I call AMO003 API with:
       """
       {
@@ -42,14 +41,14 @@ Feature: AMO003 Request Payment
       | field        | value               |
       | reference_id | any non-empty value |
       | status       | 1                   |
-    And the wallet balance in "<currency>" should decrease by "<deduction_amount>"
+    And the balance in "<currency>" wallet should decrease by "<deduction_amount>"
 
   @success
   Scenario: Multiple wagers same parent
     Deduct wallet once for multiple wagers under same parent_wager_no
 
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
+    Given the "<currency>" wallet has at least "10" balance
+    And I record the current balance in "<currency>" wallet
     When I call AMO003 API with:
       """
       {
@@ -92,14 +91,14 @@ Feature: AMO003 Request Payment
       | field        | value               |
       | reference_id | any non-empty value |
       | status       | 1                   |
-    And the wallet balance in "<currency>" should decrease by 10
+    And the balance in "<currency>" wallet should decrease by 10
 
   @business
   Scenario: Insufficient balance
     Request accepted with no wallet deduction
     Validate correct response is returned
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     And I prepare an amount exceeding the balance by 10
     When I call AMO003 API with:
       """
@@ -132,13 +131,13 @@ Feature: AMO003 Request Payment
       | reference_id| <transaction_no> |
       | status      | 2                |
       | fail_reason | 3                |
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged
 
   @business
   Scenario: Zero amount
     Accept request with no wallet change
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO003 API with:
       """
       {
@@ -169,15 +168,15 @@ Feature: AMO003 Request Payment
       | field        | value               |
       | reference_id | any non-empty value |
       | status       | 1                   |
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged
 
   @edge
   Scenario: Support up to 6 decimal places
     Validate decimal precision up to 6 places is supported
     Wallet updates without rounding errors
 
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
+    Given the "<currency>" wallet has at least "1.123456" balance
+    And I record the current balance in "<currency>" wallet
     When I call AMO003 API with:
       """
       {
@@ -208,7 +207,7 @@ Feature: AMO003 Request Payment
       | field        | value               |
       | reference_id | any non-empty value |
       | status       | 1                   |
-    And the wallet balance in "<currency>" should decrease by 1.123456
+    And the balance in "<currency>" wallet should decrease by 1.123456
 
   @idempotency
   Scenario: Idempotent request
@@ -216,9 +215,8 @@ Feature: AMO003 Request Payment
     Validate same reference_id is returned in both attempts
     Wallet is updated only once
 
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
-    And I prepare a deduction amount of 10
+    Given the "<currency>" wallet has at least "10" balance and I prepare "deduction_amount"
+    And I record the current balance in "<currency>" wallet
     When I prepare a request payload with:
       """
       {
@@ -247,12 +245,12 @@ Feature: AMO003 Request Payment
     And I call AMO003 "Request Payment - First request" API
     Then the response should be successful
     And I store the full response as "first_response"
-    And the wallet balance in "<currency>" should decrease by "<deduction_amount>"
+    And the balance in "<currency>" wallet should decrease by "<deduction_amount>"
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO003 "Request Payment - Duplicate transaction_no" API
     Then the response should be the same as stored response "first_response"
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged
 
   @validation
   Scenario: Reject positive amount
@@ -289,8 +287,8 @@ Feature: AMO003 Request Payment
   Scenario: Reject amount exceeding 6 decimal places
     Validate request is rejected when amount precision is invalid
 
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
+    Given the "<currency>" wallet has at least "1.1234567" balance
+    And I record the current balance in "<currency>" wallet
     When I call AMO003 API with:
       """
       {
@@ -323,8 +321,8 @@ Feature: AMO003 Request Payment
     Request rejected when required field missing
     Wallet remains unchanged
 
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
+    Given the "<currency>" wallet has at least "5" balance
+    And I record the current balance in "<currency>" wallet
     When I prepare a request payload with:
       """
       {
@@ -353,7 +351,7 @@ Feature: AMO003 Request Payment
     And I remove "<required_field>" from the request payload
     When I call AMO003 API
     Then the response should fail validation
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged
 
     Examples:
       | required_field    |

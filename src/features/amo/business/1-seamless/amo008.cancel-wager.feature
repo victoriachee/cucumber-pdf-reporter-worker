@@ -6,9 +6,8 @@ Feature: AMO008 Cancel Wager
   And APISYS updates wager to Cancelled
 
   Background:
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
-    And I prepare a deduction amount of 10
+    Given the "<currency>" wallet has at least "10" balance and I prepare "deduction_amount"
+    And I record the current balance in "<currency>" wallet
     When I call AMO003 "Request Payment - Create pending wager" API with:
       """
       {
@@ -39,14 +38,14 @@ Feature: AMO008 Cancel Wager
       | field             | value               |
       | reference_id      | any non-empty value |
       | status            | 1                   |
-    And the wallet balance in "<currency>" should decrease by "<deduction_amount>"
+    And the balance in "<currency>" wallet should decrease by "<deduction_amount>"
     
   @success
   Scenario: Cancel wager
     Refund wallet once
     
     # cancel wager to refund payment
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I prepare a request payload with:
       | field             | value                 |
       | transaction_no    | <transaction_no_2>    |
@@ -60,7 +59,7 @@ Feature: AMO008 Cancel Wager
     And the response should contain:
       | field             | value                 |
       | reference_id      | any non-empty value   |
-    And the wallet balance in "<currency>" should increase by "<deduction_amount>"
+    And the balance in "<currency>" wallet should increase by "<deduction_amount>"
 
   @idempotency
   Scenario: Idempotent request
@@ -68,7 +67,7 @@ Feature: AMO008 Cancel Wager
     Validate same reference_id is returned in both attempts
     Wallet is updated only once
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I prepare a request payload with:
       | field             | value                 |
       | transaction_no    | <transaction_no_2>    |
@@ -80,9 +79,9 @@ Feature: AMO008 Cancel Wager
     And I call AMO007 "Cancel Wager - First request" API
     Then the response should be successful
     And I store the full response as "first_response"
-    And the wallet balance in "<currency>" should increase by "<deduction_amount>"
+    And the balance in "<currency>" wallet should increase by "<deduction_amount>"
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO007 "Cancel Wager - Duplicate transaction_no" API
     Then the response should be the same as stored response "first_response"
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged

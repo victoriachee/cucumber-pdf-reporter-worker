@@ -8,8 +8,7 @@ Feature: AMO012 Undo Wager
   Background:
     # Create the original wager W1 in pending state before each scenario.
     # Any terminal-state preparation (settle/cancel) is done inside the scenario.
-    Given the member has positive wallet balance in "<currency>"
-    And I prepare a deduction amount of 100
+    Given the "<currency>" wallet has at least "100" balance and I prepare "deduction_amount"
     When I call AMO003 "Request Payment - Create pending wager" API with:
       | field             | value                     |
       | transaction_no    | <transaction_no_1>        |
@@ -31,7 +30,7 @@ Feature: AMO012 Undo Wager
     # W1 settle to win      -> wallet +150
     # W2 undo entire wager  -> wallet -150
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:
       | field                 | value                     |
       | transaction_no        | <transaction_no_2>        |
@@ -48,9 +47,9 @@ Feature: AMO012 Undo Wager
       | is_system_reward      | <is_system_reward>        |
       | is_partial_settlement | false                     |
     Then the response should be successful
-    And the wallet balance in "<currency>" should increase by 150
+    And the balance in "<currency>" wallet should increase by 150
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO012 "Undo Wager - Entire wager" API with:
       | field             | value                     |
       | transaction_no    | <transaction_no_3>        |
@@ -71,7 +70,7 @@ Feature: AMO012 Undo Wager
     And the response should contain:
       | field        | value               |
       | reference_id | any non-empty value |
-    And the wallet balance in "<currency>" should decrease by 150
+    And the balance in "<currency>" wallet should decrease by 150
 
   @business
   Scenario: Undo wager settlement result only
@@ -83,7 +82,7 @@ Feature: AMO012 Undo Wager
     # W1 settle to win       -> wallet +150
     # W2 undo settlement     -> wallet -50
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:
       | field                 | value                     |
       | transaction_no        | <transaction_no_2>        |
@@ -100,9 +99,9 @@ Feature: AMO012 Undo Wager
       | is_system_reward      | <is_system_reward>        |
       | is_partial_settlement | false                     |
     Then the response should be successful
-    And the wallet balance in "<currency>" should increase by 150
+    And the balance in "<currency>" wallet should increase by 150
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO012 "Undo Wager - Settlement only" API with:
       | field             | value                     |
       | transaction_no    | <transaction_no_4>        |
@@ -123,7 +122,7 @@ Feature: AMO012 Undo Wager
     And the response should contain:
       | field        | value               |
       | reference_id | any non-empty value |
-    And the wallet balance in "<currency>" should decrease by 50
+    And the balance in "<currency>" wallet should decrease by 50
 
   @business
   Scenario: Undo wager cancellation
@@ -137,7 +136,7 @@ Feature: AMO012 Undo Wager
     # W2 undo cancel      -> wallet -100
     #
     # This restores the original wager effect after the cancellation is reversed.
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO008 "Cancel Wager" API with:
       | field             | value                 |
       | transaction_no    | <transaction_no_2>    |
@@ -147,9 +146,9 @@ Feature: AMO012 Undo Wager
       | metadata          | <metadata>            |
       | metadata_type     | <metadata_type>       |
     Then the response should be successful
-    And the wallet balance in "<currency>" should increase by 100
+    And the balance in "<currency>" wallet should increase by 100
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO012 "Undo Wager - Cancellation" API with:
       | field             | value                     |
       | transaction_no    | <transaction_no_3>        |
@@ -170,13 +169,13 @@ Feature: AMO012 Undo Wager
     And the response should contain:
       | field        | value               |
       | reference_id | any non-empty value |
-    And the wallet balance in "<currency>" should decrease by 100
+    And the balance in "<currency>" wallet should decrease by 100
 
   @business
   Scenario: Zero amount
     Accept request with no wallet change
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:
       | field                 | value                     |
       | transaction_no        | <transaction_no_2>        |
@@ -194,7 +193,7 @@ Feature: AMO012 Undo Wager
       | is_partial_settlement | false                     |
     Then the response should be successful
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO012 "Undo Wager - Zero amount" API with:
       | field             | value                     |
       | transaction_no    | <transaction_no_3>        |
@@ -215,14 +214,14 @@ Feature: AMO012 Undo Wager
     And the response should contain:
       | field        | value               |
       | reference_id | any non-empty value |
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged
 
   @edge
   Scenario: Support up to 6 decimal places
     Validate decimal precision up to 6 places is supported
     Wallet updates without rounding errors
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:
       | field                 | value                     |
       | transaction_no        | <transaction_no_2>        |
@@ -240,7 +239,7 @@ Feature: AMO012 Undo Wager
       | is_partial_settlement | false                     |
     Then the response should be successful
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO012 "Undo Wager - 6 decimal places" API with:
       | field             | value                     |
       | transaction_no    | <transaction_no_3>        |
@@ -261,7 +260,7 @@ Feature: AMO012 Undo Wager
     And the response should contain:
       | field        | value               |
       | reference_id | any non-empty value |
-    And the wallet balance in "<currency>" should decrease by 149.999999
+    And the balance in "<currency>" wallet should decrease by 149.999999
 
   @idempotency
   Scenario: Idempotent request
@@ -269,7 +268,7 @@ Feature: AMO012 Undo Wager
     Validate same reference_id is returned in both attempts
     Wallet is updated only once
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO007 "Settle Wager - Full settlement - Win" API with:
       | field                 | value                     |
       | transaction_no        | <transaction_no_2>        |
@@ -287,7 +286,7 @@ Feature: AMO012 Undo Wager
       | is_partial_settlement | false                     |
     Then the response should be successful
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I prepare a request payload with:
       | field             | value                     |
       | transaction_no    | <transaction_no_3>        |
@@ -307,9 +306,9 @@ Feature: AMO012 Undo Wager
     And I call AMO012 "Undo Wager - First request" API
     Then the response should be successful
     And I store the full response as "first_response"
-    And the wallet balance in "<currency>" should decrease by 150
+    And the balance in "<currency>" wallet should decrease by 150
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO012 "Undo Wager - Duplicate transaction_no" API
     Then the response should be the same as stored response "first_response"
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged

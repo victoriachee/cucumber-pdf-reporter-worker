@@ -10,7 +10,7 @@ Feature: AMO010 Request Transfer In
     Wallet increases by transfer amount
     Validate successful response
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO010 API with:
       | field             | value                       |
       | transfer_no       | <transfer_no>               |
@@ -24,15 +24,15 @@ Feature: AMO010 Request Transfer In
       | field             | value                       |
       | reference_id      | any non-empty value         |
       | status            | 1                           |
-    And the wallet balance in "<currency>" should increase by 175.125
+    And the balance in "<currency>" wallet should increase by 175.125
 
   @business
   Scenario: Zero amount
     Accept request with no wallet change
     Validate successful response
 
-    Given I record the current wallet balance in "<currency>"
-    When I call AMO010 API with:
+    Given I record the current balance in "<currency>" wallet
+    When I call AMO010 "Transfer in - Zero amount" API with:
       | field             | value                       |
       | transfer_no       | <transfer_no>               |
       | game_type         | <game_type_transfer_wallet> |
@@ -45,7 +45,7 @@ Feature: AMO010 Request Transfer In
       | field             | value                       |
       | reference_id      | any non-empty value         |
       | status            | 1                           |
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged
 
     
   @idempotency
@@ -53,7 +53,7 @@ Feature: AMO010 Request Transfer In
     Wallet updates once per transfer_no
     Validate same reference_id is returned in both attempts
     
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I prepare a request payload with:
       | field             | value                       |
       | transfer_no       | <transfer_no>               |
@@ -69,20 +69,19 @@ Feature: AMO010 Request Transfer In
       | reference_id      | any non-empty value         |
       | status            | 1                           |
     And I store the full response as "first_response"
-    And the wallet balance in "<currency>" should increase by 100000
+    And the balance in "<currency>" wallet should increase by 100000
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO010 "Request Transfer In - Duplicate transfer_no" API
     Then the response should be the same as stored response "first_response"
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged
 
   @validation @contract
   Scenario Outline: Reject request with missing required field "<required_field>"
     Request rejected when required field missing
     Wallet remains unchanged
 
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I prepare a request payload with:
       | field             | value                       |
       | transfer_no       | <transfer_no>               |
@@ -94,7 +93,7 @@ Feature: AMO010 Request Transfer In
     And I remove "<required_field>" from the request payload
     When I call AMO010 API
     Then the response should fail validation
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged
 
     Examples:
       | required_field    |

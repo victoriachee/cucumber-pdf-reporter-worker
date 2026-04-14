@@ -5,7 +5,7 @@ Feature: AMO013 Notify Wager Update
   So that Merchant has the latest wager information
 
   Background:
-    Given the member has positive wallet balance in "<currency>"
+    Given the "<currency>" wallet has at least "100" balance
 
     # initial request payment
     When I call AMO003 "Request payment" API with:

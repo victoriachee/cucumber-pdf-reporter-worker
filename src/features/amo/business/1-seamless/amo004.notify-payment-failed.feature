@@ -5,16 +5,13 @@ Feature: AMO004 Notify Payment Failed
   So that Merchant restores wallet
   And APISYS updates wager to Creation Failed
 
-  Background:
-    Given the member has positive wallet balance in "<currency>"
-    And I record the current wallet balance in "<currency>"
-
   @success
   Scenario: Existing payment
     Restore deducted wallet balance for failed payment
     Fails all wagers under the same parent_wager_no
 
-    Given I prepare a deduction amount of 100
+    Given the "<currency>" wallet has at least "100" balance and I prepare "deduction_amount"
+    And I record the current balance in "<currency>" wallet
     When I call AMO003 "Request Payment" API with:
       """
       {
@@ -41,9 +38,9 @@ Feature: AMO004 Notify Payment Failed
       }
       """
     Then the response should be successful
-    And the wallet balance in "<currency>" should decrease by 100
+    And the balance in "<currency>" wallet should decrease by 100
 
-    Given I record the current wallet balance in "<currency>"
+    Given I record the current balance in "<currency>" wallet
     When I call AMO004 "Notify Payment Failed" API with:
       | field             | value               |
       | transaction_no    | <transaction_no_2>  |
@@ -54,7 +51,7 @@ Feature: AMO004 Notify Payment Failed
     And the response should contain: 
       | field             | value               |
       | reference_id      | any non-empty value |
-    And the wallet balance in "<currency>" should increase by 100
+    And the balance in "<currency>" wallet should increase by 100
 
   @business
   Scenario: No existing payment
@@ -71,4 +68,4 @@ Feature: AMO004 Notify Payment Failed
     And the response should contain:
       | field        | value               |
       | reference_id | any non-empty value |
-    And the wallet balance in "<currency>" should remain unchanged
+    And the balance in "<currency>" wallet should remain unchanged

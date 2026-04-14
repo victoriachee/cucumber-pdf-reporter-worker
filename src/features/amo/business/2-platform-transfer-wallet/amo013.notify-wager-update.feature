@@ -5,7 +5,7 @@ Feature: AMO013 Notify Wager Update
   So that Merchant reconciles transfer out and transfer in values
 
   Background:
-    Given the member has positive wallet balance in "<currency>"
+    Given the "<currency>" wallet has at least "100" balance
 
     # transfer out to game
     When I call AMO011 "Request Transfer Out" API with:
