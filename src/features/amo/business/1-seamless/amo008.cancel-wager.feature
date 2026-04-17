@@ -76,12 +76,12 @@ Feature: AMO008 Cancel Wager
       | platform_username | <platform_username>   |
       | metadata          | <metadata>            |
       | metadata_type     | <metadata_type>       |
-    And I call AMO007 "Cancel Wager - First request" API
+    And I call AMO008 "Cancel Wager - First request" API
     Then the response should be successful
     And I store the full response as "first_response"
     And the balance in "<currency>" wallet should increase by "<deduction_amount>"
 
     Given I record the current balance in "<currency>" wallet
-    When I call AMO007 "Cancel Wager - Duplicate transaction_no" API
+    When I call AMO008 "Cancel Wager - Duplicate transaction_no" API
     Then the response should be the same as stored response "first_response"
     And the balance in "<currency>" wallet should remain unchanged
